@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dice_game.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,36 +9,48 @@ namespace Dice_game.PlayerDomain
     public class Player
     {
         private Random Random { get; set; }
-        public short[] CurrentDice { get; set; }
+        private int[] CurrentDice { get; set; }
+        private List<Combination> CurrentMatchingCombinations { get; set; }
 
         // Determines what dice a player decide to keep and not re-roll
-        public bool[] FixedDice { get; set; }
-        public short NumberOfRolls { get; set; }
-        public PlayerType PlayerType { get; set; }
+        private bool[] FixedDice { get; set; }
+        private int NumberOfRolls { get; set; }
+        private PlayerType PlayerType { get; set; }
+
+        // Infrastruce objects
+        private Board Board { get; set; }
+        private CombinationList CombinationList { get; set; }
 
         public Player(PlayerType playerType)
         {
             PlayerType = playerType;
             Random = new Random();
-            CurrentDice = new short[6];
+            CurrentDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
             NumberOfRolls = 2;
+            Board = new Board();
+            CombinationList = new CombinationList();
         }
 
-        public void RollDice()
+        // Methods
+        private void RollDice()
         {
             for (var i = 0; i < FixedDice.Length; i++)
             {
                 if (!FixedDice[i])
                 {
-                    CurrentDice[i] = (short)Random.Next(1, 7);
+                    CurrentDice[i] = Random.Next(1, 7);
                 }
             }
 
+            // Find possible combinations
+            CurrentMatchingCombinations = CombinationList.LookupCombination(CurrentDice);
+
             DisplayDice();
+            DisplayPossibleCombinations(CurrentMatchingCombinations);
         }
 
-        public void FixDice(string indexes)
+        private void FixDice(string indexes)
         {
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
 
@@ -47,6 +60,20 @@ namespace Dice_game.PlayerDomain
             }
 
             DisplayDice();
+        }
+
+        private void AssignCombination(string combinationIndex)
+        {
+            var combination = CurrentMatchingCombinations[int.Parse(combinationIndex)];
+
+            if (!Board.CurrentBoard[combination.CombinationType].Completed)
+            {
+                Board.CurrentBoard[combination.CombinationType] = combination;
+            }
+            else
+            {
+                Console.WriteLine("This combination has already been completed.");
+            }
         }
 
         public void NextAction()
@@ -60,20 +87,33 @@ namespace Dice_game.PlayerDomain
                 case PlayerAction.RollDice:
                     RollDice();
                     break;
+
                 case PlayerAction.FixDice:
                     Console.Write("Indexes of dice to fix: ");
                     var indexes = Console.ReadLine();
                     FixDice(indexes);
                     break;
+
+                case PlayerAction.AssignCombination:
+                    Console.Write("Pick combination: ");
+                    var combinationIndex = Console.ReadLine();
+                    AssignCombination(combinationIndex);
+                    break;
+
+                case PlayerAction.ShowBoard:
+                    ShowBoard();
+                    break;
+
                 case PlayerAction.Yield:
                     break;
+
                 case PlayerAction.InvalidAction:
                 default:
                     throw new Exception();
             }
         }
 
-        public void DisplayDice()
+        private void DisplayDice()
         {
             for (var i = 0; i < CurrentDice.Length; i++)
             {
@@ -91,12 +131,32 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine();
         }
 
-        public void DisplayActionList()
+        private void DisplayActionList()
         {
             Console.WriteLine("Actions: ");
             Console.WriteLine("    1. Roll dice.");
             Console.WriteLine("    2. Fix dice.");
-            Console.WriteLine("    3. Yield.");
+            Console.WriteLine("    3. Assign combination.");
+            Console.WriteLine("    4. Show board.");
+            Console.WriteLine("    5. Yield.");
+        }
+
+        private void DisplayPossibleCombinations(List<Combination> matchingCombinations)
+        {
+            Console.WriteLine("PossibleCombinations: ");
+
+            for (var i = 0; i < matchingCombinations.Count; i++)
+            {
+                Console.WriteLine($"     {i}. {matchingCombinations[i].CombinationType} - {string.Join(",", matchingCombinations[i].Dice)}");
+            }
+        }
+
+        private void ShowBoard()
+        {
+            foreach (var combination in Board.CurrentBoard)
+            {
+                Console.WriteLine($"{combination.Value.CombinationType}: {combination.Value.Completed} - {combination.Value.Score}");
+            }
         }
     }
 }

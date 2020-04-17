@@ -6,4 +6,14 @@
     <RootNamespace>Dice_game</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Game\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Infrastructure\Combinations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

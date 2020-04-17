@@ -5,6 +5,8 @@
         InvalidAction = 0,
         RollDice,
         FixDice,
+        AssignCombination,
+        ShowBoard,
         Yield
     }
 }
