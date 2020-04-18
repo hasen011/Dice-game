@@ -8,18 +8,19 @@ namespace Dice_game.PlayerDomain
 {
     public class Player
     {
-        private Random Random { get; set; }
-        private int[] CurrentDice { get; set; }
-        private List<Combination> CurrentMatchingCombinations { get; set; }
+        public Random Random { get; set; }
+        public int[] CurrentDice { get; set; }
+        public Combination[] CurrentMatchingCombinations { get; set; }
 
         // Determines what dice a player decide to keep and not re-roll
-        private bool[] FixedDice { get; set; }
-        private int NumberOfRolls { get; set; }
-        private PlayerType PlayerType { get; set; }
+        public bool[] FixedDice { get; set; }
+        public int NumberOfRollsInCurrentRound { get; set; }
+        public int TotalNumberOfRolls { get; set; }
+        public PlayerType PlayerType { get; set; }
 
         // Infrastruce objects
-        private Board Board { get; set; }
-        private CombinationList CombinationList { get; set; }
+        public Board Board { get; set; }
+        public CombinationList CombinationList { get; set; }
 
         public Player(PlayerType playerType)
         {
@@ -27,13 +28,13 @@ namespace Dice_game.PlayerDomain
             Random = new Random();
             CurrentDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
-            NumberOfRolls = 2;
+            TotalNumberOfRolls = 0;
             Board = new Board();
             CombinationList = new CombinationList();
         }
 
         // Methods
-        private void RollDice()
+        public void RollDice()
         {
             for (var i = 0; i < FixedDice.Length; i++)
             {
@@ -50,7 +51,7 @@ namespace Dice_game.PlayerDomain
             DisplayPossibleCombinations(CurrentMatchingCombinations);
         }
 
-        private void FixDice(string indexes)
+        public void FixDice(string indexes)
         {
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
 
@@ -62,12 +63,13 @@ namespace Dice_game.PlayerDomain
             DisplayDice();
         }
 
-        private void AssignCombination(string combinationIndex)
+        public void AssignCombination(string combinationIndex)
         {
             var combination = CurrentMatchingCombinations[int.Parse(combinationIndex)];
 
             if (!Board.CurrentBoard[combination.CombinationType].Completed)
             {
+                combination.Completed = true;
                 Board.CurrentBoard[combination.CombinationType] = combination;
             }
             else
@@ -76,8 +78,17 @@ namespace Dice_game.PlayerDomain
             }
         }
 
+        // TODO: Add a concept of a round
         public void NextAction()
         {
+            // Round always starts with a roll, then player has 2 + 'any previously saved rolls' rolls
+            // If a player doesn't use the two given rolls (one or both), they can yield and save the remaining
+            // roll(s) for next rounds
+            // Round ends either by yielding, assigning a combination or running out of rolls
+            RollDice();
+            //NumberOfRollsInCurrentRound = 2 + TotalNumberOfRolls;
+            DisplayDice();
+
             DisplayActionList();
             Console.Write("What action do you want to take? ");
             Enum.TryParse(Console.ReadLine(), out PlayerAction action);
@@ -86,6 +97,7 @@ namespace Dice_game.PlayerDomain
             {
                 case PlayerAction.RollDice:
                     RollDice();
+                    NumberOfRollsInCurrentRound--;
                     break;
 
                 case PlayerAction.FixDice:
@@ -98,6 +110,7 @@ namespace Dice_game.PlayerDomain
                     Console.Write("Pick combination: ");
                     var combinationIndex = Console.ReadLine();
                     AssignCombination(combinationIndex);
+                    TotalNumberOfRolls += NumberOfRollsInCurrentRound;
                     break;
 
                 case PlayerAction.ShowBoard:
@@ -105,6 +118,7 @@ namespace Dice_game.PlayerDomain
                     break;
 
                 case PlayerAction.Yield:
+                    TotalNumberOfRolls += NumberOfRollsInCurrentRound;
                     break;
 
                 case PlayerAction.InvalidAction:
@@ -113,7 +127,7 @@ namespace Dice_game.PlayerDomain
             }
         }
 
-        private void DisplayDice()
+        public void DisplayDice()
         {
             for (var i = 0; i < CurrentDice.Length; i++)
             {
@@ -131,7 +145,7 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine();
         }
 
-        private void DisplayActionList()
+        public void DisplayActionList()
         {
             Console.WriteLine("Actions: ");
             Console.WriteLine("    1. Roll dice.");
@@ -141,17 +155,17 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine("    5. Yield.");
         }
 
-        private void DisplayPossibleCombinations(List<Combination> matchingCombinations)
+        public void DisplayPossibleCombinations(Combination[] matchingCombinations)
         {
             Console.WriteLine("PossibleCombinations: ");
 
-            for (var i = 0; i < matchingCombinations.Count; i++)
+            for (var i = 0; i < matchingCombinations.Length; i++)
             {
                 Console.WriteLine($"     {i}. {matchingCombinations[i].CombinationType} - {string.Join(",", matchingCombinations[i].Dice)}");
             }
         }
 
-        private void ShowBoard()
+        public void ShowBoard()
         {
             foreach (var combination in Board.CurrentBoard)
             {

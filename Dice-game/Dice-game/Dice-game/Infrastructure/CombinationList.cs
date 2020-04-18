@@ -13,7 +13,7 @@ namespace Dice_game.Infrastructure
         public CombinationList()
         {
             // Load list of all possible combinations (dice patterns)
-            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), "Infrastructure\\Combinations.txt"));
+            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), "Infrastructure\\Database\\Combinations.txt"));
 
             // Maps dice (combination) pattern to a combination object
             Combinations = combinations.ToLookup(
@@ -28,29 +28,38 @@ namespace Dice_game.Infrastructure
 
                         return new Combination(combinationType, dicePattern);
                     },
-                    new MyEqualityComparer()
+                    new ArrayEqualityComparer()
                 );
         }
 
         // TODO: Doesn't really work, need to check subsets - figure out a way
-        public List<Combination> LookupCombination(int[] dice)
+        public Combination[] LookupCombination(int[] dice)
         {
             // Sort the array to match with combination patterns
-            var sortedDice = dice.OrderBy(x => x).ToArray();
-            var matchingCombinations = new List<Combination>();
+            var sortedDice = dice.OrderBy(x => x).ToList();
+            var matchingCombinations = new HashSet<Combination>();
 
+            // Check all array slices starting at length 3 going to length 6 and find all matching
+            // combinations. Use HashSet to eliminate duplicates
             for (var i = 3; i <= 6; i++)
             {
-                // Try to find any matching combination patterns
-                matchingCombinations.AddRange(Combinations[sortedDice.Take(i).ToArray()]);
+                for (var j = 0; j <= 6 - i; j++)
+                {
+                    // Try to find any matching combination patterns
+                    var newMatchingCombinations = Combinations[sortedDice.GetRange(j, i).ToArray()];
+                    foreach (var c in newMatchingCombinations)
+                    {
+                        matchingCombinations.Add(c);
+                    }
+                }             
             }
 
-            return matchingCombinations;
+            return matchingCombinations.ToArray();
         }
     }
 
     // Custom comparer to allow arrays as keys in Dictionaries/Lookups
-    public class MyEqualityComparer : IEqualityComparer<int[]>
+    public class ArrayEqualityComparer : IEqualityComparer<int[]>
     {
         public bool Equals(int[] x, int[] y)
         {

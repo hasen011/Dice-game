@@ -1,6 +1,7 @@
 ﻿using Dice_game.Infrastructure;
 using Dice_game.PlayerDomain;
 using System;
+using System.Collections.Generic;
 
 namespace Dice_game
 {
@@ -11,9 +12,7 @@ namespace Dice_game
 
             var player1 = new Player(PlayerType.Human);
 
-            var com = new CombinationList();
 
-            var x = com.LookupCombination(new int[] { 4, 4, 4, 4 });
 
             while (1 == 1)
             {
