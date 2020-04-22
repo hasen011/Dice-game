@@ -9,15 +9,14 @@ namespace Dice_game
     {
         static void Main(string[] args)
         {
+            var readInput = new ReadInput();
+            var player1 = new Player(PlayerType.Human, readInput);
+            var player2 = new Player(PlayerType.Human, readInput);
 
-            var player1 = new Player(PlayerType.Human);
+            var players = new[] { player1, player2 };
 
-
-
-            while (1 == 1)
-            {
-                player1.NextAction();
-            }
+            var game = new Game(players);
+            game.StartGame();
         }
     }
 }

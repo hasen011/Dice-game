@@ -1,3 +1,4 @@
+using Dice_game.Infrastructure;
 using Dice_game.PlayerDomain;
 using System;
 using System.Linq;
@@ -18,30 +19,31 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_ReturnsCorrectly()
         {
-            var p = new Player(PlayerType.Human)
+            var p = new Player(PlayerType.Human, new ReadInput())
             {
                 // Fix all dice
                 CurrentDice = new[] { 2, 2, 2, 2, 2, 2 },
-                FixedDice = new[] { true, true, true, true, true, true }
+                FixedDice = new[] { true, true, true, true, true, true },
+                TotalNumberOfRolls = 10
             };
             p.RollDice(); // This should not change any dice but it will find matching combinations
 
-            Assert.Equal(8, p.CurrentMatchingCombinations.Length);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Equal(8, p.CurrentPossibleCombinations.Length);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Twos && x.Dice.SequenceEqual(new[] { 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Twos && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Twos && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Twos && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2, 2, 2 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.General && x.Dice.SequenceEqual(new[] { 2, 2, 2, 2, 2, 2 }));
 
             // Change current dice
@@ -53,12 +55,12 @@ namespace Dice_game_tests
             p.CurrentDice[5] = 6;
             p.RollDice(); // This should not change any dice but it will find matching combinations
 
-            Assert.Equal(3, p.CurrentMatchingCombinations.Length);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Equal(3, p.CurrentPossibleCombinations.Length);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Sixes && x.Dice.SequenceEqual(new[] { 6, 6, 6 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Triples && x.Dice.SequenceEqual(new[] { 4, 4, 4, 6, 6, 6 }));
 
             // Change current dice
@@ -70,8 +72,8 @@ namespace Dice_game_tests
             p.CurrentDice[5] = 2;
             p.RollDice(); // This should not change any dice but it will find matching combinations
 
-            Assert.Single(p.CurrentMatchingCombinations);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Single(p.CurrentPossibleCombinations);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Straight && x.Dice.SequenceEqual(new[] { 1, 2, 3, 4, 5, 6 }));
 
             // Change current dice
@@ -83,8 +85,8 @@ namespace Dice_game_tests
             p.CurrentDice[5] = 4;
             p.RollDice(); // This should not change any dice but it will find matching combinations
 
-            Assert.Single(p.CurrentMatchingCombinations);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Single(p.CurrentPossibleCombinations);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Pairs && x.Dice.SequenceEqual(new[] { 4, 4, 5, 5, 6, 6 }));
 
             // Change current dice
@@ -96,15 +98,16 @@ namespace Dice_game_tests
             p.CurrentDice[5] = 2;
             p.RollDice(); // This should not change any dice but it will find matching combinations
 
-            Assert.Empty(p.CurrentMatchingCombinations);
+            Assert.Empty(p.CurrentPossibleCombinations);
         }
 
         [Fact]
         public void CombinationLookup_ReturnsCorrectlyAfterRerolls()
         {
-            var p = new Player(PlayerType.Human)
+            var p = new Player(PlayerType.Human, new ReadInput())
             {
-                CurrentDice = new[] { 4, 1, 4, 6, 4, 4 }
+                CurrentDice = new[] { 4, 1, 4, 6, 4, 4 },
+                TotalNumberOfRolls = 10
             };
 
             _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
@@ -115,12 +118,12 @@ namespace Dice_game_tests
 
             _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
 
-            Assert.Equal(3, p.CurrentMatchingCombinations.Length);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Equal(3, p.CurrentPossibleCombinations.Length);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
 
             p.FixDice("0245");
@@ -133,12 +136,12 @@ namespace Dice_game_tests
             }
 
             // We should still have the same matching combinations
-            Assert.Equal(3, p.CurrentMatchingCombinations.Length);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Equal(3, p.CurrentPossibleCombinations.Length);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
 
             _output.WriteLine($"[4, _, 4, _, 4, 4]: {string.Join(", ", p.CurrentDice)}");
@@ -159,9 +162,48 @@ namespace Dice_game_tests
 
             _output.WriteLine($"[1, 5, 1, 6, 6, 5]: {string.Join(", ", p.CurrentDice)}");
 
-            Assert.Single(p.CurrentMatchingCombinations);
-            Assert.Contains(p.CurrentMatchingCombinations,
+            Assert.Single(p.CurrentPossibleCombinations);
+            Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Pairs && x.Dice.SequenceEqual(new[] { 1, 1, 5, 5, 6, 6 }));
         }
+
+        [Fact]
+        public void CombinationLookup_CompletedCombinationsAreNotReturned()
+        {
+            var p = new Player(PlayerType.Human, new ReadInput())
+            {
+                CurrentDice = new[] { 4, 1, 4, 6, 4, 4 },
+                FixedDice = new[] { true, true, true, true, true, true },
+                TotalNumberOfRolls = 10
+            };
+
+            // Roll dice to get matching combinations
+            p.RollDice();
+
+            _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
+
+            Assert.Equal(3, p.CurrentPossibleCombinations.Length);
+            Assert.Contains(p.CurrentPossibleCombinations,
+                x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4 }));
+            Assert.Contains(p.CurrentPossibleCombinations,
+                x => x.CombinationType == CombinationType.Fours && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
+            Assert.Contains(p.CurrentPossibleCombinations,
+                x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
+
+            p.AssignCombination("1");          
+
+            // Fix all dice and re-roll. This is done just so we get the matching combinations without changing any die
+            p.FixDice("012345");
+            p.RollDice();
+
+            _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
+
+            Assert.Single(p.CurrentPossibleCombinations);
+            Assert.Contains(p.CurrentPossibleCombinations,
+                x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
+        }
+
+
+
     }
 }
