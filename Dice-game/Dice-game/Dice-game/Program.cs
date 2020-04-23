@@ -9,9 +9,9 @@ namespace Dice_game
     {
         static void Main(string[] args)
         {
-            var readInput = new ReadInput();
-            var player1 = new Player(PlayerType.Human, readInput);
-            var player2 = new Player(PlayerType.Human, readInput);
+            var readInput = new ActionReader();
+            var player1 = new Player(PlayerType.Human);
+            var player2 = new Player(PlayerType.Human);
 
             var players = new[] { player1, player2 };
 

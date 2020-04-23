@@ -29,29 +29,21 @@ namespace Dice_game.Infrastructure
 
             while (1 == 1)
             {
-                var nextAction = Players[PlayerToPlay].NextAction();
-                if (nextAction == PlayerAction.Yield
-                    || nextAction == PlayerAction.AssignCombination)
-                {
-                    NextTurn();
-                }
+                ResolveAction(Players[PlayerToPlay].NextAction());
 
                 if (PlayerToPlay == 0 && LastRound)
                 {
-                    EndGame();
+                    // Game end
+                    for (var i = 0; i < Players.Length; i++)
+                    {
+                        Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
+                    }
+
+                    Console.WriteLine($"Player(s) {string.Join(", ", Players.Where(p => p.Board.TotalScore == Players.Max(p => p.Board.TotalScore)))} win(s).");
+
                     break;
                 }
             }
-        }
-
-        public void EndGame()
-        {
-            for (var i = 0; i < Players.Length; i++)
-            {
-                Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
-            }
-
-            Console.WriteLine($"Player(s) {string.Join(", ", Players.Where(p => p.Board.TotalScore == Players.Max(p => p.Board.TotalScore)))} win(s).");
         }
 
         public void NextTurn()
@@ -70,7 +62,13 @@ namespace Dice_game.Infrastructure
         {
             switch (action)
             {
-                case PlayerAction.Yield:              
+                case PlayerAction.Yield:
+                case PlayerAction.AssignCombination:
+                    NextTurn();
+                    break;
+
+                case PlayerAction.EndGame:
+                    LastRound = true;
                     NextTurn();
                     break;
 

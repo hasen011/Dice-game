@@ -21,9 +21,9 @@ namespace Dice_game.PlayerDomain
         // Infrastruce objects
         public Board Board { get; set; }
         public CombinationList CombinationList { get; set; }
-        public ReadInput ReadInput { get; set; }
+        public ActionReader ActionReader { get; set; }
 
-        public Player(PlayerType playerType, ReadInput readInput)
+        public Player(PlayerType playerType)
         {
             PlayerType = playerType;
             Random = new Random();
@@ -32,7 +32,19 @@ namespace Dice_game.PlayerDomain
             TotalNumberOfRolls = 0;
             Board = new Board();
             CombinationList = new CombinationList();
-            ReadInput = readInput;
+            ActionReader = new ActionReader();
+        }
+
+        public Player(PlayerType playerType, ActionReader actionReader)
+        {
+            PlayerType = playerType;
+            Random = new Random();
+            CurrentDice = new int[6];
+            FixedDice = Enumerable.Repeat(false, 6).ToArray();
+            TotalNumberOfRolls = 0;
+            Board = new Board();
+            CombinationList = new CombinationList();
+            ActionReader = actionReader;
         }
 
         // Methods
@@ -59,21 +71,21 @@ namespace Dice_game.PlayerDomain
             DisplayPossibleCombinations(CurrentPossibleCombinations);
         }
 
-        public void FixDice(string indexes)
+        public void FixDice(int[] indexes)
         {
             ResetFixedDice();
 
             for (var i = 0; i < indexes.Length; i++)
             {
-                FixedDice[indexes[i] - '0'] = true;
+                FixedDice[indexes[i]] = true;
             }
 
             DisplayDice();
         }
 
-        public void AssignCombination(string combinationIndex)
+        public void AssignCombination(int combinationIndex)
         {
-            var combination = CurrentPossibleCombinations[int.Parse(combinationIndex)];
+            var combination = CurrentPossibleCombinations[combinationIndex];
 
             if (!Board.CurrentBoard[combination.CombinationType].Completed)
             {
@@ -104,7 +116,7 @@ namespace Dice_game.PlayerDomain
             // Round ends either by yielding, assigning a combination or running out of rolls
             DisplayActionList();
             Console.Write($"What action do you want to take ({TotalNumberOfRolls} rolls left)? ");
-            Enum.TryParse(ReadInput.GetNextInput(), out PlayerAction action);
+            var (action, param) = ActionReader.GetNextAction();
 
             switch (action)
             {
@@ -113,15 +125,11 @@ namespace Dice_game.PlayerDomain
                     return action;
 
                 case PlayerAction.FixDice:
-                    Console.Write("Indexes of dice to fix: ");
-                    var indexes = ReadInput.GetNextInput();
-                    FixDice(indexes);
+                    FixDice(param);
                     return action;
 
                 case PlayerAction.AssignCombination:
-                    Console.Write("Pick combination: ");
-                    var combinationIndex = ReadInput.GetNextInput();
-                    AssignCombination(combinationIndex);
+                    AssignCombination(param[0]);
                     return action;
 
                 case PlayerAction.ShowBoard:
@@ -131,7 +139,19 @@ namespace Dice_game.PlayerDomain
                 case PlayerAction.Yield:
                     return action;
 
+                // Action for testing purposes
+                case PlayerAction.AssignDice:
+                    CurrentDice = param;
+                    EvaluateDice();
+                    return action;
+
                 case PlayerAction.InvalidAction:
+                    Console.WriteLine("Invalid action!");
+                    return action;
+
+                case PlayerAction.EndGame:
+                    return action;
+
                 default:
                     throw new Exception();
             }
@@ -163,6 +183,7 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine("    3. Assign combination.");
             Console.WriteLine("    4. Show board.");
             Console.WriteLine("    5. Yield.");
+            Console.WriteLine("    7. EndGame.");
         }
 
         public void DisplayPossibleCombinations(Combination[] matchingCombinations)

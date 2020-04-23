@@ -19,7 +19,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_ReturnsCorrectly()
         {
-            var p = new Player(PlayerType.Human, new ReadInput())
+            var p = new Player(PlayerType.Human)
             {
                 // Fix all dice
                 CurrentDice = new[] { 2, 2, 2, 2, 2, 2 },
@@ -104,7 +104,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_ReturnsCorrectlyAfterRerolls()
         {
-            var p = new Player(PlayerType.Human, new ReadInput())
+            var p = new Player(PlayerType.Human)
             {
                 CurrentDice = new[] { 4, 1, 4, 6, 4, 4 },
                 TotalNumberOfRolls = 10
@@ -113,7 +113,7 @@ namespace Dice_game_tests
             _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
 
             // Fix all dice and re-roll. This is done just so we get the matching combinations without changing any die
-            p.FixDice("012345");
+            p.FixDice(new[] { 0, 1, 2, 3, 4, 5 });
             p.RollDice();
 
             _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");
@@ -126,7 +126,7 @@ namespace Dice_game_tests
             Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
 
-            p.FixDice("0245");
+            p.FixDice(new[] { 0, 2, 4, 5 });
             p.RollDice();
 
             // Make sure we didn't create new combinations by re-rolling
@@ -157,7 +157,7 @@ namespace Dice_game_tests
             p.CurrentDice[5] = 5;
 
             // Fix all dice and roll
-            p.FixDice("012345");
+            p.FixDice(new[] { 0, 1, 2, 3, 4, 5 });
             p.RollDice();
 
             _output.WriteLine($"[1, 5, 1, 6, 6, 5]: {string.Join(", ", p.CurrentDice)}");
@@ -170,7 +170,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_CompletedCombinationsAreNotReturned()
         {
-            var p = new Player(PlayerType.Human, new ReadInput())
+            var p = new Player(PlayerType.Human)
             {
                 CurrentDice = new[] { 4, 1, 4, 6, 4, 4 },
                 FixedDice = new[] { true, true, true, true, true, true },
@@ -190,10 +190,10 @@ namespace Dice_game_tests
             Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
 
-            p.AssignCombination("1");          
+            p.AssignCombination(1);          
 
             // Fix all dice and re-roll. This is done just so we get the matching combinations without changing any die
-            p.FixDice("012345");
+            p.FixDice(new[] { 0, 1, 2, 3, 4, 5 });
             p.RollDice();
 
             _output.WriteLine($"[4, 1, 4, 6, 4, 4]: {string.Join(", ", p.CurrentDice)}");

@@ -7,6 +7,8 @@
         FixDice,
         AssignCombination,
         ShowBoard,
-        Yield
+        Yield,
+        AssignDice, // This is used to manually override dice values
+        EndGame
     }
 }
