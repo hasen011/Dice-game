@@ -8,7 +8,8 @@
         AssignCombination,
         ShowBoard,
         Yield,
-        AssignDice, // This is used to manually override dice values
-        EndGame
+        EndGame,
+
+        AssignDice = 99, // This is used to manually override dice values
     }
 }

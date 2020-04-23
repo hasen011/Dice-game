@@ -83,8 +83,14 @@ namespace Dice_game.PlayerDomain
             DisplayDice();
         }
 
-        public void AssignCombination(int combinationIndex)
+        public bool TryAssignCombination(int combinationIndex)
         {
+            if (combinationIndex < 0 || combinationIndex >= CurrentPossibleCombinations.Length)
+            {
+                Console.WriteLine("Pick a valid combination.");
+                return false;
+            }
+
             var combination = CurrentPossibleCombinations[combinationIndex];
 
             if (!Board.CurrentBoard[combination.CombinationType].Completed)
@@ -92,10 +98,13 @@ namespace Dice_game.PlayerDomain
                 combination.Completed = true;
                 Board.CurrentBoard[combination.CombinationType] = combination;
                 Board.TotalScore += combination.Score;
+
+                return true;
             }
             else
             {
                 Console.WriteLine("This combination has already been completed.");
+                return false;
             }
         }
 
@@ -129,8 +138,14 @@ namespace Dice_game.PlayerDomain
                     return action;
 
                 case PlayerAction.AssignCombination:
-                    AssignCombination(param[0]);
-                    return action;
+                    if (TryAssignCombination(param[0]))
+                    {
+                        return action;
+                    }
+                    else
+                    {
+                        return PlayerAction.InvalidAction;
+                    }                  
 
                 case PlayerAction.ShowBoard:
                     ShowBoard();
@@ -139,17 +154,19 @@ namespace Dice_game.PlayerDomain
                 case PlayerAction.Yield:
                     return action;
 
-                // Action for testing purposes
-                case PlayerAction.AssignDice:
-                    CurrentDice = param;
-                    EvaluateDice();
-                    return action;
-
                 case PlayerAction.InvalidAction:
                     Console.WriteLine("Invalid action!");
                     return action;
 
                 case PlayerAction.EndGame:
+                    return action;
+
+                // Action for testing purposes
+                case PlayerAction.AssignDice:
+                    CurrentDice = param;
+                    EvaluateDice();
+                    DisplayDice();
+                    DisplayPossibleCombinations(CurrentPossibleCombinations);
                     return action;
 
                 default:
@@ -183,7 +200,7 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine("    3. Assign combination.");
             Console.WriteLine("    4. Show board.");
             Console.WriteLine("    5. Yield.");
-            Console.WriteLine("    7. EndGame.");
+            Console.WriteLine("    6. EndGame.");
         }
 
         public void DisplayPossibleCombinations(Combination[] matchingCombinations)

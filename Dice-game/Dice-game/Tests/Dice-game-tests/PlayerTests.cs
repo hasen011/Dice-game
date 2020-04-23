@@ -190,7 +190,7 @@ namespace Dice_game_tests
             Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
 
-            p.AssignCombination(1);          
+            p.TryAssignCombination(1);          
 
             // Fix all dice and re-roll. This is done just so we get the matching combinations without changing any die
             p.FixDice(new[] { 0, 1, 2, 3, 4, 5 });

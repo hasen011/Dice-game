@@ -32,26 +32,48 @@ namespace Dice_game.Infrastructure
             }
 
             if (temp.Length == 1)
-            {            
-                return (action, new int[0]);
-            }
-            else if (temp.Length == 2)
-            {
-                var p = temp[1];
-                var param = p.Split(",").Select(d => int.Parse(d)).ToArray();
-
-                // Checks
-                if (action == PlayerAction.AssignCombination && param.Length != 1)
+            {   
+                if (action == PlayerAction.FixDice
+                    || action == PlayerAction.AssignDice
+                    || action == PlayerAction.AssignCombination)
                 {
                     return (PlayerAction.InvalidAction, new int[0]);
                 }
 
-                if (action == PlayerAction.FixDice || action == PlayerAction.AssignDice)
+                return (action, new int[0]);
+            }
+            else if (temp.Length == 2)
+            {
+                var param = temp[1].Split(",").Select(d => int.Parse(d)).ToArray();
+                
+                // Checks
+                if (param.Any(p => p < 0))
                 {
-                    if (param.Length < 1 || param.Length > 6)
+                    return (PlayerAction.InvalidAction, new int[0]);
+                }
+
+                if (action == PlayerAction.AssignCombination)
+                {
+                    if (param.Length != 1)
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
-                    }
+                    }                
+                }
+
+                if (action == PlayerAction.FixDice)
+                {
+                    if (param.Any(p => p < 0 || p > 5) || param.Length > 6)
+                    {
+                        return (PlayerAction.InvalidAction, new int[0]);
+                    }                
+                }
+
+                if (action == PlayerAction.AssignDice)
+                {
+                    if (param.Any(p => p < 1 || p > 6) || param.Length != 6)
+                    {
+                        return (PlayerAction.InvalidAction, new int[0]);
+                    }                 
                 }
 
                 return (action, param);
