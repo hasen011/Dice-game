@@ -10,4 +10,8 @@
     <Folder Include="Utility\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Dice-game\Dice-game\Dice-game\Dice-game.csproj" />
+  </ItemGroup>
+
 </Project>

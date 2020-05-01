@@ -48,7 +48,7 @@ namespace Dice_game.PlayerDomain
         }
 
         // Methods
-        public void RollDice()
+        public void RollDice(bool sortDiceAfterRoll = false)
         {
             if (TotalNumberOfRolls == 0)
             {
@@ -64,11 +64,18 @@ namespace Dice_game.PlayerDomain
                 }
             }
 
+            // Should we sort the array after every roll?
+            // Sort FixedDice according to how CurrentDice is sorted
+            if (sortDiceAfterRoll)
+            {
+                Array.Sort(CurrentDice, FixedDice);
+            }         
+
             TotalNumberOfRolls--;
 
             EvaluateDice();
             DisplayDice();
-            DisplayPossibleCombinations(CurrentPossibleCombinations);
+            DisplayPossibleCombinations(CurrentPossibleCombinations);         
         }
 
         public void FixDice(int[] indexes)
@@ -116,7 +123,7 @@ namespace Dice_game.PlayerDomain
             // If a player doesn't use the two given rolls (one or both), they can yield and save the remaining
             // roll(s) for next rounds
             TotalNumberOfRolls += 3;
-            RollDice(); // This will subtract a roll, that's why we add 3 above
+            RollDice(true); // This will subtract a roll, that's why we add 3 above
         }
 
         public PlayerAction NextAction()
@@ -130,7 +137,7 @@ namespace Dice_game.PlayerDomain
             switch (action)
             {
                 case PlayerAction.RollDice:
-                    RollDice();
+                    RollDice(true);
                     return action;
 
                 case PlayerAction.FixDice:
@@ -224,7 +231,7 @@ namespace Dice_game.PlayerDomain
         public void EvaluateDice()
         {
             // Find possible combinations. Don't include combinations which were already completed
-            var matchingCombinations = CombinationList.LookupCombination(CurrentDice);
+            var matchingCombinations = CombinationList.LookupMatchingCombinations(CurrentDice);
             var tempCombinations = new List<Combination>();
             foreach (var combination in matchingCombinations)
             {

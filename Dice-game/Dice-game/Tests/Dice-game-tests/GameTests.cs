@@ -42,7 +42,7 @@ namespace Dice_game_tests
                             "AssignCombination 0",
                             "AssignDice 3,4,3,6,4,6",
                             "AssignCombination 0",
-                            "6 1,2,3,4,5,6",
+                            "99 1,2,3,4,5,6",
                             "3 0" })),
                 new Player(PlayerType.Human,
                     new ActionReaderSequence(new [] { "Yield", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5" })) });
@@ -55,8 +55,6 @@ namespace Dice_game_tests
             Assert.Equal(0, game.Players[1].Board.TotalScore);
             Assert.Equal(24, game.Players[0].TotalNumberOfRolls);
         }
-
-
 
 
 

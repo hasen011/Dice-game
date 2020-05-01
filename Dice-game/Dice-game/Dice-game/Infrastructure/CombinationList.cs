@@ -1,4 +1,5 @@
-﻿using Dice_game.PlayerDomain;
+﻿using Dice_game.Infrastructure.Utility;
+using Dice_game.PlayerDomain;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,15 +9,16 @@ namespace Dice_game.Infrastructure
 {
     public class CombinationList
     {
-        private readonly ILookup<int[], Combination> Combinations;
+        private readonly ILookup<int[], Combination> CombinationsLookup;
+        public readonly Combination[] Combinations;
 
         public CombinationList()
         {
             // Load list of all possible combinations (dice patterns)
-            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), "Infrastructure\\Database\\Combinations.txt"));
+            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Infrastructure\Database\Combinations.txt"));
 
             // Maps dice (combination) pattern to a combination object
-            Combinations = combinations.ToLookup(
+            CombinationsLookup = combinations.ToLookup(
                     x => {
                         var dicePattern = x.Split(" ")[0].Split(",").Select(int.Parse).ToArray();
 
@@ -30,12 +32,20 @@ namespace Dice_game.Infrastructure
                     },
                     new ArrayEqualityComparer()
                 );
+
+            Combinations = combinations.Select(c =>
+            {
+                var temp = c.Split(" ");
+                var dicePattern = temp[0].Split(",").Select(int.Parse).ToArray();
+                Enum.TryParse(temp[1], true, out CombinationType combinationType);
+
+                return new Combination(combinationType, dicePattern);
+            }).ToArray();
         }
 
-        // TODO: Doesn't really work, need to check subsets - figure out a way
-        public Combination[] LookupCombination(int[] dice)
+        public Combination[] LookupMatchingCombinations(int[] dice)
         {
-            // Sort the array to match with combination patterns
+            // Sort the array to match with combination patterns. Create a new array, don't want to change the underlying one.
             var sortedDice = dice.OrderBy(x => x).ToList();
             var matchingCombinations = new HashSet<Combination>();
 
@@ -46,7 +56,7 @@ namespace Dice_game.Infrastructure
                 for (var j = 0; j <= 6 - i; j++)
                 {
                     // Try to find any matching combination patterns
-                    var newMatchingCombinations = Combinations[sortedDice.GetRange(j, i).ToArray()];
+                    var newMatchingCombinations = CombinationsLookup[sortedDice.GetRange(j, i).ToArray()];
                     foreach (var c in newMatchingCombinations)
                     {
                         matchingCombinations.Add(c);
@@ -58,37 +68,5 @@ namespace Dice_game.Infrastructure
         }
     }
 
-    // Custom comparer to allow arrays as keys in Dictionaries/Lookups
-    public class ArrayEqualityComparer : IEqualityComparer<int[]>
-    {
-        public bool Equals(int[] x, int[] y)
-        {
-            if (x.Length != y.Length)
-            {
-                return false;
-            }
-            for (int i = 0; i < x.Length; i++)
-            {
-                if (x[i] != y[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public int GetHashCode(int[] obj)
-        {
-            // Hash code obtained here: https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode
-            int result = 17;
-            for (int i = 0; i < obj.Length; i++)
-            {
-                unchecked // Overflow is fine, just wrap
-                {
-                    result = result * 23 + obj[i];
-                }
-            }
-            return result;
-        }
-    }
+    
 }
