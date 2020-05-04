@@ -44,7 +44,7 @@ namespace Dice_game.Infrastructure
             }
             else if (temp.Length == 2)
             {
-                var param = temp[1].Split(",").Select(d => int.Parse(d)).ToArray();
+                var param = temp[1].ToCharArray().Select(x => x - '0').ToArray();
                 
                 // Checks
                 if (param.Any(p => p < 0))
