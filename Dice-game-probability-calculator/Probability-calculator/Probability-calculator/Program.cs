@@ -17,11 +17,14 @@ namespace Probability_calculator
             var random = new Random();
 
             var combinationList = new CombinationList();
+            combinationList.CreateFullListOfAllPossibleRollsWithPossibleCombinations();
 
             var combination = new Combination(CombinationType.Threes)
             {
                 Dice = new int[] { 3, 3, 3 }
             };
+
+            var x = combinationList.LookupMatchingCombinations(new int[] { 3, 3, 3, 3, 4, 4 });
 
             var p = new Player(PlayerType.Human)
             {

@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Dice_game.Infrastructure
 {
-    class PatternList
+    public class PatternList
     {
+        
     }
 }
