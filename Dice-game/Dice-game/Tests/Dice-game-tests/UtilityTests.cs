@@ -14,7 +14,10 @@ namespace Dice_game_tests
         public void GenericPatterns_CheckIfWeHaveAllNeededPatterns()
         {
             var dice = new int[6] { 0, 0, 0, 0, 0, 0 };
-            var patternFrequencies = GameUtility.GetPatterns().ToDictionary(x => x, x => 0, new ArrayEqualityComparerChar());
+            var patterns = GameUtility.GetPatterns();
+            // Add empty pattern for simplicity of this test
+            patterns.Add(new char[] { });
+            var patternFrequencies = patterns.ToDictionary(x => x, x => 0, new ArrayEqualityComparerChar());
             var combinationList = new CombinationList();
             var isPatternMissing = false;
 

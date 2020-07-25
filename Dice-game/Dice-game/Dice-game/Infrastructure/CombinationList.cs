@@ -48,7 +48,8 @@ namespace Dice_game.Infrastructure
             var dice = new int[] { 0, 0, 0, 0, 0, 0 }.ToList();
             var rollWithPossibleCombinations = new StringBuilder(56);
             Console.WriteLine(Directory.GetCurrentDirectory());
-            using StreamWriter file = new StreamWriter(@"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Infrastructure\Database\FullRollListWithCombinations.txt");
+            using StreamWriter file = new StreamWriter(
+                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Infrastructure\Database\FullRollListWithCombinations.txt");
             for (var a = 1; a <= 6; a++)
             {
                 dice[0] = a;

@@ -47,7 +47,7 @@ namespace Dice_game.Infrastructure
                 var param = temp[1].ToCharArray().Select(x => x - '0').ToArray();
                 
                 // Checks
-                if (param.Any(p => p < 0))
+                if (param.Any(p => p < 0) || param.Any(p => p > 6))
                 {
                     return (PlayerAction.InvalidAction, new int[0]);
                 }

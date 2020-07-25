@@ -9,7 +9,7 @@ namespace Dice_game.PlayerDomain
 {
     public class Player
     {
-        public Random Random { get; set; }
+        private Random Random { get; set; }
         public int[] CurrentDice { get; set; }
         public Combination[] CurrentPossibleCombinations { get; set; }
 

@@ -3,7 +3,9 @@ using Dice_game.Infrastructure.Utility;
 using Dice_game.PlayerDomain;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Probability_calculator
 {
@@ -11,7 +13,16 @@ namespace Probability_calculator
     {
         static void Main(string[] args)
         {
-            var pattern = new[] { 1, 2, 3, 4, 5, 6 };
+            using StreamWriter patternProbabilitiesFile = new StreamWriter(
+                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Infrastructure\Database\PatternProbabilities.txt");
+
+            for (int i = 0; i < 18; i++)
+            {
+                var results = ComputePatternProbabilities(i, 10, 500, 500);
+                patternProbabilitiesFile.WriteLine(results);
+            }
+
+            /*var pattern = new[] { 1, 2, 3, 4, 5, 6 };
             var currentDice = new[] { 4, 2, 2, 4, 2, 4 };
             var N = 1000000;
             var random = new Random();
@@ -25,6 +36,9 @@ namespace Probability_calculator
             };
 
             var x = combinationList.LookupMatchingCombinations(new int[] { 3, 3, 3, 3, 4, 4 });
+
+            var ppp = new PatternList();
+            ppp.CreatePatternProbabilities(1);
 
             var p = new Player(PlayerType.Human)
             {
@@ -61,40 +75,98 @@ namespace Probability_calculator
                 }
                 combinationList.LookupMatchingCombinations(currentDice);
             }
-            /*foreach (var x in combinationList.LookupCombination(currentDice))
+            foreach (var x in combinationList.LookupCombination(currentDice))
             {
                 Console.WriteLine(x.CombinationType);
-            }*/
+            }
             watch.Stop();
             var elapsedMs = watch.ElapsedMilliseconds;
             Console.WriteLine(elapsedMs);
 
 
             elapsedMs = watch.ElapsedMilliseconds;
-            Console.WriteLine(elapsedMs);
+            Console.WriteLine(elapsedMs);*/
         }
 
         /// <summary>
-        /// This method find a difference between two dice sets, i.e. finds missing dice from a current roll to complete a desired pattern.
+        /// Manual method to compute pattern probablity.
         /// </summary>
-        /// <param name="dice1"></param>
-        /// <param name="dice2"></param>
-        static List<int> MissingDice(int[] currentDice, int[] pattern)
+        /// <param name="index"></param>
+        static string ComputePatternProbabilities(int index, int numberOfRolls, int numberOfRounds, int numberOfIterations)
         {
-            Array.Sort(currentDice);
-            Array.Sort(pattern);
+            // TODO: Add comments
 
-            var result = new List<int>(6);
-
-            for (var i = 0; i < currentDice.Length; i++)
+            var patterns = new List<int[]>(18)
             {
-                if (currentDice[i] != pattern[i])
+                new int[] { 1 },
+                new int[] { 1, 1 },
+                new int[] { 1, 1, 1 },
+                new int[] { 1, 1, 1, 1 },
+                new int[] { 1, 1, 1, 1, 1 },
+                new int[] { 1, 1, 1, 1, 1, 1 },
+                new int[] { 1, 2 },
+                new int[] { 1, 2, 3 },
+                new int[] { 1, 2, 3, 4 },
+                new int[] { 1, 2, 3, 4, 5 },
+                new int[] { 1, 1, 2 },
+                new int[] { 1, 1, 1, 2 },
+                new int[] { 1, 1, 2, 2 },
+                new int[] { 1, 1, 2, 2, 3 },
+                new int[] { 1, 1, 1, 2, 2 },
+                new int[] { 1, 1, 1, 2, 2, 2 },
+                new int[] { 1, 1, 2, 3 },
+                new int[] { 1, 1, 2, 2, 3, 3 }
+            };
+
+            var probabilities = new List<decimal[]>(numberOfRolls);
+            var random = new Random();
+
+            var diceToGet = patterns[index];
+            var c = new Combination(CombinationType.Ones)
+            {
+                Dice = diceToGet
+            };
+
+            for (int i = 0; i < numberOfRolls; i++)
+            {
+                probabilities.Add(new decimal[numberOfRounds]);
+                for (int r = 0; r < numberOfRounds; r++)
                 {
-                    result.Add(pattern[i]);
+                    probabilities[i][r] = 0;
+                    for (int j = 0; j < numberOfIterations; j++)
+                    {
+                        var roll = i + 1;
+                        var matchedDiceNumber = 0;
+                        c.Dice = diceToGet;
+
+                        while (roll > 0)
+                        {
+                            roll--;
+                            int[] currentDice = Enumerable.Repeat(0, 6 - matchedDiceNumber)
+                                                    .Select(i => random.Next(1, 7))
+                                                    .ToArray();
+                            c.Dice = c.MissingDiceToCompleteCombination(currentDice);
+                            if (c.Dice.Length == 0)
+                            {
+                                probabilities[i][r]++;
+                                break;
+                            }
+
+                            matchedDiceNumber = diceToGet.Length - c.Dice.Length;
+                        }
+                    }
+
+                    probabilities[i][r] = probabilities[i][r] / numberOfIterations;
                 }
+                Console.WriteLine($"Roll #: {i + 1} completed");
             }
 
-            return result;
+            var result = new StringBuilder();
+            result.Append(GameUtility.CreateGenericPatternFromDice(diceToGet));
+            result.Append(" ");
+            result.Append(string.Join(' ', probabilities.Select(x => Math.Round(x.Average(), 5))));
+
+            return result.ToString();
         }
     }
 }

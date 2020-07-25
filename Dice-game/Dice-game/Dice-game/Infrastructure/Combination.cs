@@ -32,11 +32,11 @@ namespace Dice_game.PlayerDomain
             Score = dice.Sum();
         }
 
-        public int[] MissingDiceToCompleteCombination(int[] dice)
+        public int[] MissingDiceToCompleteCombination(int[] rolledDice)
         {
             // It is assumed that the combination dice are alredy sorted (I created them that way)
             // Also, it is assumed that rolledDice.Length >= Dice.Length
-            var sortedDice = dice.OrderBy(x => x).ToArray();
+            var sortedDice = rolledDice.OrderBy(x => x).ToArray();
 
             var result = new List<int>(Dice.Length);
 

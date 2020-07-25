@@ -27,9 +27,10 @@ namespace Dice_game.Infrastructure.Utility
             var patterns = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Infrastructure\Database\Patterns.txt"));
 
             var set = patterns.Select(x => x.ToCharArray()).ToHashSet(new ArrayEqualityComparerChar());
-            set.Add(new char[] { });
             return set;
         }
+
+        
     }
 
 
