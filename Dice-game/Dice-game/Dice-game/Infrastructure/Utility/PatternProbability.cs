@@ -1,4 +1,4 @@
-﻿namespace Dice_game.Game.Infrastructure.Utility
+﻿namespace Dice_game.Infrastructure.Utility
 {
     public class PatternProbability
     {

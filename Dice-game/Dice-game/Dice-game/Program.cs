@@ -1,6 +1,7 @@
 ﻿using Dice_game.Infrastructure.Utility;
 using Dice_game.PlayerDomain;
 using Dice_game.PlayerDomain.Utility;
+using Dice_game.Infrastructure;
 
 namespace Dice_game
 {
@@ -14,7 +15,7 @@ namespace Dice_game
 
             var players = new[] { player1, player2 };
 
-            var game = new Infrastructure.Game(players);
+            var game = new Game(players);
             game.StartGame();
         }
     }
