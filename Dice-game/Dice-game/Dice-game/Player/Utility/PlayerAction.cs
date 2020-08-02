@@ -1,4 +1,4 @@
-﻿namespace Dice_game.PlayerDomain
+﻿namespace Dice_game.PlayerDomain.Utility
 {
     public enum PlayerAction
     {
@@ -7,8 +7,9 @@
         FixDice,
         AssignCombination,
         ShowBoard,
-        Yield,
+        EndTurn,
         EndGame,
+        EvaluateAllCombinations,
 
         AssignDice = 99, // This is used to manually override dice values
     }

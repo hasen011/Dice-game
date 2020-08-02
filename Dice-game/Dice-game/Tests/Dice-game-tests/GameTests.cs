@@ -1,7 +1,7 @@
 ﻿using Dice_game.Infrastructure;
+using Dice_game.Infrastructure.Utility;
 using Dice_game.PlayerDomain;
-using System;
-using System.Linq;
+using Dice_game.PlayerDomain.Utility;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,7 +45,7 @@ namespace Dice_game_tests
                             "99 123456",
                             "3 0" })),
                 new Player(PlayerType.Human,
-                    new ActionReaderSequence(new [] { "Yield", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5" })) });
+                    new ActionReaderSequence(new [] { "EndTurn", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5" })) });
 
             Assert.False(game.LastRound);
             game.StartGame();

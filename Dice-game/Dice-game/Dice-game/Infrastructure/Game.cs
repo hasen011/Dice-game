@@ -1,8 +1,7 @@
 ﻿using Dice_game.PlayerDomain;
+using Dice_game.PlayerDomain.Utility;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Dice_game.Infrastructure
 {
@@ -62,7 +61,7 @@ namespace Dice_game.Infrastructure
         {
             switch (action)
             {
-                case PlayerAction.Yield:
+                case PlayerAction.EndTurn:
                 case PlayerAction.AssignCombination:
                     NextTurn();
                     break;

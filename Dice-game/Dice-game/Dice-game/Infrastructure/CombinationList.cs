@@ -1,10 +1,8 @@
 ﻿using Dice_game.Infrastructure.Utility;
-using Dice_game.PlayerDomain;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Dice_game.Infrastructure
 {
@@ -17,7 +15,7 @@ namespace Dice_game.Infrastructure
         public CombinationList()
         {
             // Load list of all possible combinations (dice patterns)
-            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Infrastructure\Database\Combinations.txt"));
+            var combinations = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\Combinations.txt"));
 
             Combinations = combinations.Select(c =>
             {
@@ -40,71 +38,9 @@ namespace Dice_game.Infrastructure
             return RollListWithMatchingCombinations[dice];
         }
 
-        /// <summary>
-        /// Creates a txt file with all possible rolls we can get and all possible matching combinations.
-        /// </summary>
-        public void CreateFullListOfAllPossibleRollsWithPossibleCombinations()
-        {
-            var dice = new int[] { 0, 0, 0, 0, 0, 0 }.ToList();
-            var rollWithPossibleCombinations = new StringBuilder(56);
-            Console.WriteLine(Directory.GetCurrentDirectory());
-            using StreamWriter file = new StreamWriter(
-                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Infrastructure\Database\FullRollListWithCombinations.txt");
-            for (var a = 1; a <= 6; a++)
-            {
-                dice[0] = a;
-                for (var b = 1; b <= 6; b++)
-                {
-                    dice[1] = b;
-                    for (var c = 1; c <= 6; c++)
-                    {
-                        dice[2] = c;
-                        for (var d = 1; d <= 6; d++)
-                        {
-                            dice[3] = d;
-                            for (var e = 1; e <= 6; e++)
-                            {
-                                dice[4] = e;
-                                for (var f = 1; f <= 6; f++)
-                                {
-                                    dice[5] = f;
-
-                                    rollWithPossibleCombinations.Append(string.Join("", dice));
-                                    var uniqueCombinations = new HashSet<int[]>(new ArrayEqualityComparer());
-
-                                    // Create all possible dice subsets of length 3 or greater
-                                    for (var i = 3; i <= 6; i++)
-                                    {
-                                        for (var j = 0; j <= 6 - i; j++)
-                                        {
-                                            uniqueCombinations.Add(dice.OrderBy(x => x).ToList().GetRange(j, i).ToArray());
-                                        }
-                                    }
-
-                                    // Check if a subset is a combination
-                                    foreach (var z in uniqueCombinations) 
-                                    {
-                                        if (CombinationsLookup.Contains(z))
-                                        {
-                                            rollWithPossibleCombinations.Append($" {string.Join("", z)}");
-                                        }                                       
-                                    }
-                                    
-                                    file.WriteLine(rollWithPossibleCombinations);
-                                    rollWithPossibleCombinations.Clear();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        }
-
         public Dictionary<int[], Combination[]> ReadFullRollListWithAllMatchingCombinations()
         {
-            var rolls = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Infrastructure\Database\FullRollListWithCombinations.txt"));
+            var rolls = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\FullRollListWithCombinations.txt"));
 
             var result = new Dictionary<int[], Combination[]>(46656, new ArrayEqualityComparer());
 

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Dice_game.Infrastructure.Utility;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dice_game.PlayerDomain
+namespace Dice_game.Infrastructure
 {
     public class Combination
     {
@@ -10,7 +10,9 @@ namespace Dice_game.PlayerDomain
         public int[] Dice { get; set; }     
         public int Score { get; set; }
         public bool Completed { get; set; }
-        public decimal ProbabilityToComplete { get; set; }
+        public int[] DiceToCompleteCombination { get; set; }
+        public decimal[] ProbabilitiesToCompleteCombinationWithinAllAvailableRolls { get; set; }
+        public decimal[] ExpectedValuesForCombinationWithinAllAvailableRolls { get; set; }
 
         public Combination(CombinationType combinationType)
         {
@@ -34,7 +36,14 @@ namespace Dice_game.PlayerDomain
 
         public int[] MissingDiceToCompleteCombination(int[] rolledDice)
         {
-            // It is assumed that the combination dice are alredy sorted (I created them that way)
+            // If nothing was rolled then just return the combination's dice
+            if (rolledDice.Length == 0)
+            {
+                DiceToCompleteCombination = Dice;
+                return DiceToCompleteCombination;
+            }
+
+            // It is assumed that the combination dice are already sorted (I created them that way)
             // Also, it is assumed that rolledDice.Length >= Dice.Length
             var sortedDice = rolledDice.OrderBy(x => x).ToArray();
 
@@ -69,8 +78,25 @@ namespace Dice_game.PlayerDomain
                 }
             }
 
-            return result.ToArray();
+            // Set 'DiceToCompleteCombination' when this method is called
+            DiceToCompleteCombination = result.ToArray();
+            return DiceToCompleteCombination;
         }
+
+        public void SetProbabilitiesAndEVToCompleteCombinationWithinAllAvailableRolls(int maximumNumberOfRolls, int[] rolledDice, Dictionary<string, decimal[]> patternProbabilities)
+        {
+            var patternOfMissingDice = GameUtility.CreateGenericPatternFromDice(MissingDiceToCompleteCombination(rolledDice));
+
+            // Number of dice the player have left to roll to complete a combination
+            var rollingDiceCount = 6 - (Dice.Length - DiceToCompleteCombination.Length);
+
+            // Find the corresponding pattern probability for how many dice a player has left to roll
+            var key = new string(patternOfMissingDice) + rollingDiceCount;
+            var probabilitiesForAvailableRolls = patternProbabilities[key].Take(maximumNumberOfRolls).ToArray();
+            ProbabilitiesToCompleteCombinationWithinAllAvailableRolls = probabilitiesForAvailableRolls;
+            ExpectedValuesForCombinationWithinAllAvailableRolls = probabilitiesForAvailableRolls.Select(p => p * Score).ToArray();
+        }
+
 
         
     }

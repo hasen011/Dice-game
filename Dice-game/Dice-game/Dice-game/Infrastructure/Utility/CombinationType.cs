@@ -1,4 +1,4 @@
-﻿namespace Dice_game.PlayerDomain
+﻿namespace Dice_game.Infrastructure.Utility
 {
     public enum CombinationType
     {

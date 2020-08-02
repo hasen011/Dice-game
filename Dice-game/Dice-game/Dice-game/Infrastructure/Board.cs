@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Dice_game.Infrastructure.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dice_game.PlayerDomain
+namespace Dice_game.Infrastructure
 {
     public class Board
     {

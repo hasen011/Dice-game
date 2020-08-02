@@ -1,8 +1,5 @@
 ﻿using Dice_game.Infrastructure;
 using Dice_game.Infrastructure.Utility;
-using Dice_game.PlayerDomain;
-using System;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -121,7 +118,6 @@ namespace Dice_game_tests
             pattern = GameUtility.CreateGenericPatternFromDice(missingDice);
             Assert.Equal(new char[] { 'a', 'b', 'c' }, pattern);
         }
-
 
 
     }

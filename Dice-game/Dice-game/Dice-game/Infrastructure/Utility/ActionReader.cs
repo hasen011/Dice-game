@@ -1,8 +1,8 @@
-﻿using Dice_game.PlayerDomain;
+﻿using Dice_game.PlayerDomain.Utility;
 using System;
 using System.Linq;
 
-namespace Dice_game.Infrastructure
+namespace Dice_game.Infrastructure.Utility
 {
     public class ActionReader
     {

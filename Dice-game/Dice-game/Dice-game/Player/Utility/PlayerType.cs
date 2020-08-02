@@ -1,4 +1,4 @@
-﻿namespace Dice_game.PlayerDomain
+﻿namespace Dice_game.PlayerDomain.Utility
 {
     public enum PlayerType
     {

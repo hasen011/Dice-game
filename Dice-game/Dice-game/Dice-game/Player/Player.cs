@@ -1,16 +1,16 @@
 ﻿using Dice_game.Infrastructure;
+using Dice_game.Infrastructure.Utility;
+using Dice_game.PlayerDomain.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace Dice_game.PlayerDomain
 {
     public class Player
     {
         private Random Random { get; set; }
-        public int[] CurrentDice { get; set; }
+        public int[] RolledDice { get; set; }
         public Combination[] CurrentPossibleCombinations { get; set; }
 
         // Determines what dice a player decide to keep and not re-roll
@@ -22,29 +22,36 @@ namespace Dice_game.PlayerDomain
         public Board Board { get; set; }
         public CombinationList CombinationList { get; set; }
         public ActionReader ActionReader { get; set; }
+        public Dictionary<string, decimal[]> PatternProbabilities { get; set; }
 
         public Player(PlayerType playerType)
         {
             PlayerType = playerType;
             Random = new Random();
-            CurrentDice = new int[6];
+            RolledDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
             TotalNumberOfRolls = 0;
             Board = new Board();
             CombinationList = new CombinationList();
             ActionReader = new ActionReader();
+
+            // PatternProbabilities - Load list of all possible pattern probabilities
+            PatternProbabilities = GameUtility.GetPatternProbabilities();
         }
 
         public Player(PlayerType playerType, ActionReader actionReader)
         {
             PlayerType = playerType;
             Random = new Random();
-            CurrentDice = new int[6];
+            RolledDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
             TotalNumberOfRolls = 0;
             Board = new Board();
             CombinationList = new CombinationList();
             ActionReader = actionReader;
+
+            // PatternProbabilities - Load list of all possible pattern probabilities
+            PatternProbabilities = GameUtility.GetPatternProbabilities();
         }
 
         // Methods
@@ -52,7 +59,7 @@ namespace Dice_game.PlayerDomain
         {
             if (TotalNumberOfRolls == 0)
             {
-                Console.WriteLine("No rolls left! Assign a combination or yield!");
+                Console.WriteLine("No rolls left! Assign a combination or end your turn!");
                 return;
             }
 
@@ -60,7 +67,7 @@ namespace Dice_game.PlayerDomain
             {
                 if (!FixedDice[i])
                 {
-                    CurrentDice[i] = Random.Next(1, 7);
+                    RolledDice[i] = Random.Next(1, 7);
                 }
             }
 
@@ -68,7 +75,7 @@ namespace Dice_game.PlayerDomain
             // Sort FixedDice according to how CurrentDice is sorted
             if (sortDiceAfterRoll)
             {
-                Array.Sort(CurrentDice, FixedDice);
+                Array.Sort(RolledDice, FixedDice);
             }         
 
             TotalNumberOfRolls--;
@@ -120,16 +127,15 @@ namespace Dice_game.PlayerDomain
             ResetFixedDice();
 
             // Round always starts with a roll, then player has 2 + 'any previously saved rolls' rolls
-            // If a player doesn't use the two given rolls (one or both), they can yield and save the remaining
+            // If a player doesn't use the two given rolls (one or both), they can end their turn and save the remaining
             // roll(s) for next rounds
             TotalNumberOfRolls += 3;
             RollDice(true); // This will subtract a roll, that's why we add 3 above
         }
 
         public PlayerAction NextAction()
-        {
-            
-            // Round ends either by yielding, assigning a combination or running out of rolls
+        {           
+            // Round ends either by a player ending their turn voluntarily, assigning a combination or running out of rolls
             DisplayActionList();
             Console.Write($"What action do you want to take ({TotalNumberOfRolls} rolls left)? ");
             var (action, param) = ActionReader.GetNextAction();
@@ -158,7 +164,7 @@ namespace Dice_game.PlayerDomain
                     ShowBoard();
                     return action;
 
-                case PlayerAction.Yield:
+                case PlayerAction.EndTurn:
                     return action;
 
                 case PlayerAction.InvalidAction:
@@ -168,9 +174,14 @@ namespace Dice_game.PlayerDomain
                 case PlayerAction.EndGame:
                     return action;
 
+                case PlayerAction.EvaluateAllCombinations:
+                    EvaluateAllCombinations();
+                    return action;
+
+
                 // Action for testing purposes
                 case PlayerAction.AssignDice:
-                    CurrentDice = param;
+                    RolledDice = param;
                     EvaluateDice();
                     DisplayDice();
                     DisplayPossibleCombinations(CurrentPossibleCombinations);
@@ -183,9 +194,9 @@ namespace Dice_game.PlayerDomain
 
         public void DisplayDice()
         {
-            for (var i = 0; i < CurrentDice.Length; i++)
+            for (var i = 0; i < RolledDice.Length; i++)
             {
-                Console.Write(CurrentDice[i]);
+                Console.Write(RolledDice[i]);
                 if (FixedDice[i])
                 {
                     Console.Write("x");
@@ -206,8 +217,9 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine("    2. Fix dice.");
             Console.WriteLine("    3. Assign combination.");
             Console.WriteLine("    4. Show board.");
-            Console.WriteLine("    5. Yield.");
+            Console.WriteLine("    5. End your turn.");
             Console.WriteLine("    6. EndGame.");
+            Console.WriteLine("    7. EvaluateAllCombinations.");
         }
 
         public void DisplayPossibleCombinations(Combination[] matchingCombinations)
@@ -231,7 +243,7 @@ namespace Dice_game.PlayerDomain
         public void EvaluateDice()
         {
             // Find possible combinations. Don't include combinations which were already completed
-            var matchingCombinations = CombinationList.LookupMatchingCombinations(CurrentDice);
+            var matchingCombinations = CombinationList.LookupMatchingCombinations(RolledDice);
             var tempCombinations = new List<Combination>();
             foreach (var combination in matchingCombinations)
             {
@@ -251,6 +263,19 @@ namespace Dice_game.PlayerDomain
             }
         }
 
+        private void EvaluateAllCombinations()
+        {
+            foreach (var c in CombinationList.Combinations)
+            {
+                // Calculate probabilities to complete combination and its expected values
+                c.SetProbabilitiesAndEVToCompleteCombinationWithinAllAvailableRolls(TotalNumberOfRolls, RolledDice, PatternProbabilities);
+
+                var probabilities = c.ProbabilitiesToCompleteCombinationWithinAllAvailableRolls;
+                var evs = c.ExpectedValuesForCombinationWithinAllAvailableRolls;
+                Console.WriteLine($"{c.CombinationType}, [{string.Join(", ", c.Dice)}] - {string.Join(", ", evs)}");
+                
+            }
+        }
 
 
     }

@@ -7,20 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Game\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Infrastructure\Database\Combinations.txt">
+    <None Update="Database\Combinations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Infrastructure\Database\FullRollListWithCombinations.txt">
+    <None Update="Database\FullRollListWithCombinations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Infrastructure\Database\PatternProbabilities.txt">
+    <None Update="Database\PatternProbabilities.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Infrastructure\Database\Patterns.txt">
+    <None Update="Database\Patterns.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
