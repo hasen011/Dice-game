@@ -41,32 +41,35 @@ namespace Dice_game.Infrastructure.Utility
         /// [pattern+diceLeftRoll, probabilities]
         /// </summary>
         /// <returns></returns>
-        public static Dictionary<string, decimal[]> GetPatternProbabilities()
+        public static PatternProbability[] GetPatternProbabilities()
         {
             // Load list of all pattern probabilities. This list has each possible pattern with a probability of completing it within
             // a fixed (100) number of rolls
-            var patternProbabilities = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\PatternProbabilities.txt"));
+            var file = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\PatternProbabilities.txt"));
 
-            var patternProbabilitiesDictionary =  patternProbabilities.ToDictionary(p =>
+            var patternProbabilities = file.Select(p =>
             {
                 var split = p.Split(" ");
-
-                return split[0] + split[1];
-            },
-            p =>
-            {
-                var split = p.Split(" ");
-
                 var probabilities = new List<decimal>(100);
                 for (int i = 2; i < split.Length; i++)
                 {
                     probabilities.Add(decimal.Parse(split[i]));
                 }
 
-                return probabilities.ToArray();
-            });
+                return new PatternProbability(split[0].ToCharArray(), int.Parse(split[1]), probabilities.ToArray());
+            }).ToArray();
 
-            return patternProbabilitiesDictionary;
+            return patternProbabilities;
+        }
+
+        public static string GetPatternProbabilityId(char[] pattern, int rollingDiceCount)
+        {
+            return new string(pattern) + rollingDiceCount.ToString();
+        }
+
+        public static Dictionary<string, decimal[]> CreatePatternProbabilitiesDictionary()
+        {
+            return GetPatternProbabilities().ToDictionary(p => p.Id, p => p.PatternProbabilities);
         }
 
 

@@ -1,5 +1,7 @@
 ﻿using Dice_game.Infrastructure;
 using Dice_game.Infrastructure.Utility;
+using Dice_game.PlayerDomain;
+using Dice_game.PlayerDomain.Utility;
 using System;
 using System.Linq;
 using Xunit;
@@ -54,7 +56,8 @@ namespace Dice_game_tests
         [Fact]
         public void GenericPatterns_CheckIfWeHaveAllPatternProbabilities()
         {
-            var patternProbabilities = GameUtility.GetPatternProbabilities();
+            var player = new Player(PlayerType.Human);
+            var patternProbabilities = player.PatternProbabilities;
             var combinationList = new CombinationList();
             var isPatternMissing = false;
 

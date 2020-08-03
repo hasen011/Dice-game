@@ -22,6 +22,7 @@ namespace Dice_game.PlayerDomain
         public Board Board { get; set; }
         public CombinationList CombinationList { get; set; }
         public ActionReader ActionReader { get; set; }
+        // Pattern probability dictionary [patternId, patternProbabilities]
         public Dictionary<string, decimal[]> PatternProbabilities { get; set; }
 
         public Player(PlayerType playerType)
@@ -36,7 +37,7 @@ namespace Dice_game.PlayerDomain
             ActionReader = new ActionReader();
 
             // PatternProbabilities - Load list of all possible pattern probabilities
-            PatternProbabilities = GameUtility.GetPatternProbabilities();
+            PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
         }
 
         public Player(PlayerType playerType, ActionReader actionReader)
@@ -51,7 +52,7 @@ namespace Dice_game.PlayerDomain
             ActionReader = actionReader;
 
             // PatternProbabilities - Load list of all possible pattern probabilities
-            PatternProbabilities = GameUtility.GetPatternProbabilities();
+            PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
         }
 
         // Methods
