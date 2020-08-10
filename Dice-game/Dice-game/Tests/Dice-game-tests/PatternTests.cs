@@ -56,7 +56,7 @@ namespace Dice_game_tests
         [Fact]
         public void GenericPatterns_CheckIfWeHaveAllPatternProbabilities()
         {
-            var player = new Player(PlayerType.Human);
+            var player = new Player(PlayerType.Human, "test_player");
             var patternProbabilities = player.PatternProbabilities;
             var combinationList = new CombinationList();
             var isPatternMissing = false;

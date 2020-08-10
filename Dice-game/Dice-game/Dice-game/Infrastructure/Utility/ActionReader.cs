@@ -8,9 +8,15 @@ namespace Dice_game.Infrastructure.Utility
     {
         // Expected format is action followed by optional parameters.
         // Example: 1 2,3 (roll dice 2 and 3)
-        public virtual (PlayerAction action, int[] param) GetNextAction()
+        public virtual (PlayerAction action, int[] param) GetNextAction(Round round, bool firstAction)
         {
             var input = Console.ReadLine();
+
+            // If it's Round.Two and first action, force player to pick a combination to play
+            if (round == Round.Two && firstAction)
+            {
+                input = $"{PlayerAction.PickCombinationToPlay} " + input;
+            }
             
             return ParseInput(input);
         }
@@ -35,7 +41,8 @@ namespace Dice_game.Infrastructure.Utility
             {   
                 if (action == PlayerAction.FixDice
                     || action == PlayerAction.AssignDice
-                    || action == PlayerAction.AssignCombination)
+                    || action == PlayerAction.AssignCombination
+                    || action == PlayerAction.PickCombinationToPlay)
                 {
                     return (PlayerAction.InvalidAction, new int[0]);
                 }
@@ -51,29 +58,33 @@ namespace Dice_game.Infrastructure.Utility
                 {
                     return (PlayerAction.InvalidAction, new int[0]);
                 }
-
-                if (action == PlayerAction.AssignCombination)
+                else if (action == PlayerAction.AssignCombination)
                 {
                     if (param.Length != 1)
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
                     }                
                 }
-
-                if (action == PlayerAction.FixDice)
+                else if (action == PlayerAction.FixDice)
                 {
                     if (param.Any(p => p < 0 || p > 5) || param.Length > 6)
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
                     }                
                 }
-
-                if (action == PlayerAction.AssignDice)
+                else if (action == PlayerAction.AssignDice)
                 {
                     if (param.Any(p => p < 1 || p > 6) || param.Length != 6)
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
                     }                 
+                }
+                else if (action == PlayerAction.PickCombinationToPlay)
+                {
+                    if (param.Length != 1 || !Enum.IsDefined(typeof(CombinationType), param[0]))
+                    {
+                        return (PlayerAction.InvalidAction, new int[0]);
+                    }    
                 }
 
                 return (action, param);
@@ -94,9 +105,17 @@ namespace Dice_game.Infrastructure.Utility
         {
             InputSequence = inputSequence;
         }
-        public override (PlayerAction action, int[] param) GetNextAction()
+        public override (PlayerAction action, int[] param) GetNextAction(Round round, bool firstAction)
         {
-            return ParseInput(InputSequence[index++]);
+            var input = InputSequence[index++];
+
+            // If it's Round.Two and first action, force player to pick a combination to play
+            if (round == Round.Two && firstAction)
+            {
+                input = $"{PlayerAction.PickCombinationToPlay} " + input;
+            }
+
+            return ParseInput(input);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Dice_game_tests
         [Fact]
         public void GameTest_SimpleRunToFinish()
         {
-            var game = new Game(new[] { new Player(PlayerType.Human,
+            var game = new Game(new[] { new Player(PlayerType.Human, "test_player_1",
                     new ActionReaderSequence(
                         new [] { 
                             "AssignDice 666666",
@@ -43,14 +43,15 @@ namespace Dice_game_tests
                             "AssignDice 343646",
                             "AssignCombination 0",
                             "99 123456",
-                            "3 0" })),
-                new Player(PlayerType.Human,
+                            "3 0",
+                            "EndGame"})),
+                new Player(PlayerType.Human, "test_player_2",
                     new ActionReaderSequence(new [] { "EndTurn", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5" })) });
 
-            Assert.False(game.LastRound);
+            Assert.False(game.EndGame);
             game.StartGame();
 
-            Assert.True(game.LastRound);
+            Assert.True(game.EndGame);
             Assert.Equal(191, game.Players[0].Board.TotalScore);
             Assert.Equal(0, game.Players[1].Board.TotalScore);
             Assert.Equal(24, game.Players[0].TotalNumberOfRolls);

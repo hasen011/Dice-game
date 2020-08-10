@@ -10,6 +10,7 @@ namespace Dice_game.PlayerDomain
     public class Player
     {
         private Random Random { get; set; }
+        public string Name { get; set; }
         public int[] RolledDice { get; set; }
         public Combination[] CurrentPossibleCombinations { get; set; }
 
@@ -17,6 +18,9 @@ namespace Dice_game.PlayerDomain
         public bool[] FixedDice { get; set; }
         public int TotalNumberOfRolls { get; set; }
         public PlayerType PlayerType { get; set; }
+        public CombinationType CombinationToPlay { get; set; }
+        public Round Round { get; set; }
+        public bool FirstAction { get; set; }
 
         // Infrastruce objects
         public Board Board { get; set; }
@@ -25,9 +29,10 @@ namespace Dice_game.PlayerDomain
         // Pattern probability dictionary [patternId, patternProbabilities]
         public Dictionary<string, decimal[]> PatternProbabilities { get; set; }
 
-        public Player(PlayerType playerType)
+        public Player(PlayerType playerType, string name)
         {
             PlayerType = playerType;
+            Name = name;
             Random = new Random();
             RolledDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
@@ -35,14 +40,17 @@ namespace Dice_game.PlayerDomain
             Board = new Board();
             CombinationList = new CombinationList();
             ActionReader = new ActionReader();
+            CombinationToPlay = CombinationType.Unknown;
+            FirstAction = false;
 
             // PatternProbabilities - Load list of all possible pattern probabilities
             PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
         }
 
-        public Player(PlayerType playerType, ActionReader actionReader)
+        public Player(PlayerType playerType, string name, ActionReader actionReader)
         {
             PlayerType = playerType;
+            Name = name;
             Random = new Random();
             RolledDice = new int[6];
             FixedDice = Enumerable.Repeat(false, 6).ToArray();
@@ -50,6 +58,8 @@ namespace Dice_game.PlayerDomain
             Board = new Board();
             CombinationList = new CombinationList();
             ActionReader = actionReader;
+            CombinationToPlay = CombinationType.Unknown;
+            FirstAction = false;
 
             // PatternProbabilities - Load list of all possible pattern probabilities
             PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
@@ -108,7 +118,12 @@ namespace Dice_game.PlayerDomain
 
             var combination = CurrentPossibleCombinations[combinationIndex];
 
-            if (!Board.CurrentBoard[combination.CombinationType].Completed)
+            if (combination.CombinationType != CombinationToPlay)
+            {
+                Console.WriteLine($"This combination cannot be played. You must play {CombinationToPlay}! ");
+                return false;
+            }
+            else if (!Board.CurrentBoard[combination.CombinationType].Completed)
             {
                 combination.Completed = true;
                 Board.CurrentBoard[combination.CombinationType] = combination;
@@ -118,7 +133,7 @@ namespace Dice_game.PlayerDomain
             }
             else
             {
-                Console.WriteLine("This combination has already been completed.");
+                Console.WriteLine("This combination has already been completed. Choose different action!");
                 return false;
             }
         }
@@ -127,19 +142,48 @@ namespace Dice_game.PlayerDomain
         {
             ResetFixedDice();
 
+            // If round three then assign a combination to play
+            if (Round == Round.Three && CombinationToPlay != CombinationType.General)
+            {
+                CombinationToPlay++;
+            }
+
             // Round always starts with a roll, then player has 2 + 'any previously saved rolls' rolls
             // If a player doesn't use the two given rolls (one or both), they can end their turn and save the remaining
             // roll(s) for next rounds
             TotalNumberOfRolls += 3;
             RollDice(true); // This will subtract a roll, that's why we add 3 above
+
+            // If round two then force player to set a combination after taking a turn
+            if (Round == Round.Two)
+            {
+                FirstAction = true;
+            }
+        }
+        
+        public bool TryToSetCombinationToPlay(int combinationIndex)
+        {
+            var combinationToPlay = (CombinationType)combinationIndex;
+
+            // Players cannot pick already completed combinations
+            if (Board.CurrentBoard[combinationToPlay].Completed)
+            {
+                Console.WriteLine("This combination has already been completed. Pick a different one!");
+                return false;
+            }
+
+            CombinationToPlay = combinationToPlay;
+            FirstAction = false;
+            Console.WriteLine($"You picked {CombinationToPlay} to play!");
+            return true;
         }
 
         public PlayerAction NextAction()
         {           
             // Round ends either by a player ending their turn voluntarily, assigning a combination or running out of rolls
-            DisplayActionList();
-            Console.Write($"What action do you want to take ({TotalNumberOfRolls} rolls left)? ");
-            var (action, param) = ActionReader.GetNextAction();
+            DisplayActionList(Round, FirstAction);
+            
+            var (action, param) = ActionReader.GetNextAction(Round, FirstAction);
 
             switch (action)
             {
@@ -159,13 +203,28 @@ namespace Dice_game.PlayerDomain
                     else
                     {
                         return PlayerAction.InvalidAction;
-                    }                  
+                    };
+                    
+                case PlayerAction.PickCombinationToPlay:
+                    if (TryToSetCombinationToPlay(param[0]))
+                    {
+                        return action;
+                    }
+                    else
+                    {
+                        return PlayerAction.InvalidAction;
+                    };
 
                 case PlayerAction.ShowBoard:
                     ShowBoard();
                     return action;
 
                 case PlayerAction.EndTurn:
+                    if (CombinationToPlay != CombinationType.Unknown)
+                    {
+                        Board.CurrentBoard[CombinationToPlay].Score = 0;
+                        Board.CurrentBoard[CombinationToPlay].Completed = true;  
+                    }
                     return action;
 
                 case PlayerAction.InvalidAction:
@@ -211,16 +270,25 @@ namespace Dice_game.PlayerDomain
             Console.WriteLine();
         }
 
-        public void DisplayActionList()
+        public void DisplayActionList(Round round, bool firstAction)
         {
-            Console.WriteLine("Actions: ");
-            Console.WriteLine("    1. Roll dice.");
-            Console.WriteLine("    2. Fix dice.");
-            Console.WriteLine("    3. Assign combination.");
-            Console.WriteLine("    4. Show board.");
-            Console.WriteLine("    5. End your turn.");
-            Console.WriteLine("    6. EndGame.");
-            Console.WriteLine("    7. EvaluateAllCombinations.");
+            if (round == Round.Two && firstAction)
+            {
+                Console.Write("Pick combination to play: ");
+            }
+            else
+            {
+                Console.WriteLine("Actions: ");
+                Console.WriteLine("    1. Roll dice.");
+                Console.WriteLine("    2. Fix dice.");
+                Console.WriteLine("    3. Assign combination.");
+                Console.WriteLine("    4. Show board.");
+                Console.WriteLine("    5. End your turn.");
+                Console.WriteLine("    6. EndGame.");
+                Console.WriteLine("    7. EvaluateAllCombinations.");
+                Console.Write($"What action do you want to take ({TotalNumberOfRolls} rolls left)? ");
+            }
+            
         }
 
         public void DisplayPossibleCombinations(Combination[] matchingCombinations)

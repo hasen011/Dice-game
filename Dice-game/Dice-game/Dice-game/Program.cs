@@ -10,12 +10,12 @@ namespace Dice_game
         static void Main(string[] args)
         {
             var readInput = new ActionReader();
-            var player1 = new Player(PlayerType.Human);
-            var player2 = new Player(PlayerType.Human);
+            var player1 = new Player(PlayerType.Human, "test_player_1");
+            var player2 = new Player(PlayerType.Human, "test_player_2");
 
             var players = new[] { player1, player2 };
 
-            var game = new Game(players);
+            var game = new Game(players, Round.Two);
             game.StartGame();
         }
     }
