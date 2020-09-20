@@ -13,6 +13,9 @@
     <None Update="Database\FullRollListWithCombinations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Database\PatternProbabilitiesAnalytical.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Database\PatternProbabilities.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

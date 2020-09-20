@@ -42,6 +42,7 @@ namespace Dice_game.PlayerDomain
             ActionReader = new ActionReader();
             CombinationToPlay = CombinationType.Unknown;
             FirstAction = false;
+            Round = Round.One;
 
             // PatternProbabilities - Load list of all possible pattern probabilities
             PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
@@ -60,6 +61,7 @@ namespace Dice_game.PlayerDomain
             ActionReader = actionReader;
             CombinationToPlay = CombinationType.Unknown;
             FirstAction = false;
+            Round = Round.One;
 
             // PatternProbabilities - Load list of all possible pattern probabilities
             PatternProbabilities = GameUtility.CreatePatternProbabilitiesDictionary();
@@ -91,9 +93,14 @@ namespace Dice_game.PlayerDomain
 
             TotalNumberOfRolls--;
 
-            EvaluateDice();
             DisplayDice();
-            DisplayPossibleCombinations(CurrentPossibleCombinations);         
+            
+            // Skip this step if it's Round Two and FirstAction
+            if (Round != Round.Two || !FirstAction)
+            {
+                EvaluateDice();
+                DisplayPossibleCombinations(CurrentPossibleCombinations);
+            }          
         }
 
         public void FixDice(int[] indexes)
@@ -118,7 +125,7 @@ namespace Dice_game.PlayerDomain
 
             var combination = CurrentPossibleCombinations[combinationIndex];
 
-            if (combination.CombinationType != CombinationToPlay)
+            if (combination.CombinationType != CombinationToPlay && Round != Round.One)
             {
                 Console.WriteLine($"This combination cannot be played. You must play {CombinationToPlay}! ");
                 return false;
@@ -142,23 +149,24 @@ namespace Dice_game.PlayerDomain
         {
             ResetFixedDice();
 
+            // If round two then force player to set a combination after taking a turn
+            if (Round == Round.Two)
+            {
+                FirstAction = true;
+            }
+
             // If round three then assign a combination to play
             if (Round == Round.Three && CombinationToPlay != CombinationType.General)
             {
                 CombinationToPlay++;
             }
 
+            // Note: RollDice should be the last thing in this method - order matters
             // Round always starts with a roll, then player has 2 + 'any previously saved rolls' rolls
             // If a player doesn't use the two given rolls (one or both), they can end their turn and save the remaining
             // roll(s) for next rounds
             TotalNumberOfRolls += 3;
             RollDice(true); // This will subtract a roll, that's why we add 3 above
-
-            // If round two then force player to set a combination after taking a turn
-            if (Round == Round.Two)
-            {
-                FirstAction = true;
-            }
         }
         
         public bool TryToSetCombinationToPlay(int combinationIndex)
@@ -175,6 +183,11 @@ namespace Dice_game.PlayerDomain
             CombinationToPlay = combinationToPlay;
             FirstAction = false;
             Console.WriteLine($"You picked {CombinationToPlay} to play!");
+
+            // Evaluate Dice after picking a combination to play and display possible combinations
+            EvaluateDice();
+            DisplayPossibleCombinations(CurrentPossibleCombinations);
+
             return true;
         }
 
@@ -312,16 +325,42 @@ namespace Dice_game.PlayerDomain
         public void EvaluateDice()
         {
             // Find possible combinations. Don't include combinations which were already completed
+            // and also don't include combinations which cannot be played (in Round Two and Three)
             var matchingCombinations = CombinationList.LookupMatchingCombinations(RolledDice);
             var tempCombinations = new List<Combination>();
             foreach (var combination in matchingCombinations)
             {
+                if ((Round == Round.Two || Round == Round.Three) && combination.CombinationType != CombinationToPlay)
+                {
+                    continue;
+                }
+
                 if (!Board.CurrentBoard[combination.CombinationType].Completed)
                 {
                     tempCombinations.Add(combination);
                 }
             }
             CurrentPossibleCombinations = tempCombinations.ToArray();
+        }
+
+        public void FinishRound()
+        {
+            if (Round != Round.Three)
+            {
+                Round++;
+            }
+
+            Board.TotalScore += TotalNumberOfRolls; // Add Rolls to score at the end of each turn/game
+
+            // Reset states
+            CombinationToPlay = CombinationType.Unknown;
+            foreach (var keyValuePair in Board.CurrentBoard)
+            {
+                // Reset combinations to not complete
+                keyValuePair.Value.Completed = false;
+            }
+
+            TotalNumberOfRolls = 0; // Set rolls to 0
         }
 
         private void ResetFixedDice()

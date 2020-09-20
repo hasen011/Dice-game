@@ -45,7 +45,7 @@ namespace Dice_game.Infrastructure.Utility
         {
             // Load list of all pattern probabilities. This list has each possible pattern with a probability of completing it within
             // a fixed (100) number of rolls
-            var file = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\PatternProbabilities.txt"));
+            var file = File.ReadAllLines(Path.Combine(Directory.GetCurrentDirectory(), @"Database\PatternProbabilitiesAnalytical.txt"));
 
             var patternProbabilities = file.Select(p =>
             {

@@ -12,14 +12,128 @@ namespace Probability_calculator
     {
         static void Main(string[] args)
         {
-            using StreamWriter patternProbabilitiesFile = new StreamWriter(
-                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilities.txt");
+            /*using StreamWriter patternProbabilitiesFile = new StreamWriter(
+                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilitiesAnalytical.txt");
 
-            for (int i = 0; i < 35; i++)
+            var patterns = GetPatterns();
+            var p = new Dictionary<string, decimal>();
+            var f = new Dictionary<string, decimal>();
+
+            var possibleRolls = new Dictionary<int, List<int[]>>
             {
-                var results = ComputePatternProbabilities(i, 5, 100, 100);
-                patternProbabilitiesFile.WriteLine(results);
+                { 0, GetRollsForDice(0) },
+                { 1, GetRollsForDice(1) },
+                { 2, GetRollsForDice(2) },
+                { 3, GetRollsForDice(3) },
+                { 4, GetRollsForDice(4) },
+                { 5, GetRollsForDice(5) },
+                { 6, GetRollsForDice(6) }
+            };
+
+            // This generates probabilities to get all possible subsets of all possible patterns for 1 roll
+            foreach (var pt in patterns)
+            {
+                var hashSet = new HashSet<int[]>(new ArrayEqualityComparer());
+                var subsets = GetSubsets(pt.pattern);
+
+                foreach (var s in subsets)
+                {
+                    if (s.Length >= 1 && s[0] == 2)
+                    {
+                        var br = true;
+                    }
+
+                    var id = GetPatternId(pt.pattern, s, pt.rollingDiceCount, 1);
+                    var prob = GetPatternProbability(pt.pattern, s, possibleRolls[pt.rollingDiceCount]);
+                    p[id] = prob;
+
+                    foreach (var ss in GetSubsets(s))
+                    {
+                        id = GetPatternId(s, ss, s.Length, 1);
+                        prob = GetPatternProbability(s, ss, possibleRolls[s.Length]);
+                        p[id] = prob;
+                    }
+                    
+                    
+                }
+
+
             }
+
+            foreach (var pt in patterns)
+            {
+                Console.WriteLine(GetPatternId(pt.pattern, pt.rollingDiceCount, 2));
+                F(pt.pattern, pt.pattern, pt.rollingDiceCount, 100, p, f);
+            }
+
+            var ppp = new Dictionary<string, decimal[]>(patterns.Count);
+            foreach (var pt in GetPatterns(true))
+            {
+                ppp[$"{string.Join("", GameUtility.CreateGenericPatternFromDice(pt.pattern))} {pt.rollingDiceCount}"] = new decimal[100];
+            }
+
+            foreach (var pair in f)
+            {
+                var key = pair.Key.Split("-");
+                var ptr = new List<int>();
+                var ptrKey = key[0].ToCharArray().Select(x => x - '0').ToArray();
+
+                ppp[$"{string.Join("", GameUtility.CreateGenericPatternFromDice(ptrKey))} {key[1]}"][int.Parse(key[2]) - 1] = Math.Round(pair.Value, 6);
+            }
+
+            foreach (var pair in ppp)
+            {
+                patternProbabilitiesFile.WriteLine($"{pair.Key} {string.Join(" ", pair.Value)}");
+                patternProbabilitiesFile.Flush();
+            }*/
+
+            var y = 0;
+
+            using StreamWriter patternProbabilitiesFileDiff = new StreamWriter(
+                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilitiesDiff.txt");
+
+            var probNumerical = File.ReadAllLines(@"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilities.txt");
+            var probAnalytical = File.ReadAllLines(@"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilitiesAnalytical.txt");
+
+            for (int i = 0; i < probNumerical.Length; i++)
+            {
+                var diffs = new List<string>();
+                var probNumericalValues = probNumerical[i].Split(" ");
+                var probAnalyticalValues = probAnalytical[i].Split(" ");
+                diffs.Add(probNumericalValues[0]);
+                diffs.Add(probNumericalValues[1]);
+                for (int j = 2; j < probNumericalValues.Length; j++)
+                {
+                    diffs.Add((decimal.Parse(probNumericalValues[j]) -
+                        decimal.Parse(probAnalyticalValues[j])).ToString());
+                }
+
+                patternProbabilitiesFileDiff.WriteLine(string.Join(" ", diffs));
+            }
+
+            /*var r = new List<int[]>();
+            GetRollsForDice(3, r);
+
+            var s = 0;
+            foreach (var e in r)
+            {
+                var m = 0;
+                foreach (var f in e)
+                {
+                    if (f == 1)
+                    {
+                        m++;
+                    }
+                }
+
+                if (m == 0)
+                {
+                    s++;
+                }
+            }
+
+            var x = (decimal)s / r.Count;
+            var y = 0;*/
 
 
             /*var charA = new char[] { '1', '2', '3', '4', '5', '6' };
@@ -111,6 +225,337 @@ namespace Probability_calculator
             Console.WriteLine(elapsedMs);*/
         }
 
+        static decimal F(int[] pattern, int[] subPattern, int rollingDiceCount, int rollCount, Dictionary<string, decimal> p, Dictionary<string, decimal> f)
+        {
+            // Get pattern id
+            var pid = GetPatternId(pattern, subPattern, rollingDiceCount, 1);
+            var fid = GetPatternId(pattern, rollingDiceCount, rollCount);
+
+            /*var charPattern = GameUtility.CreateGenericPatternFromDice(pattern);
+            var charSubPattern = GameUtility.CreateGenericPatternFromDice(subPattern);
+            var newPattern = charPattern.Select(x => x - 96).ToArray();
+            var newSubPattern = charPattern.Select(x => x - 96).ToArray();*/
+
+            if (fid == "aab-3-2")
+            {
+                var aaa = 0;
+            }
+
+
+            if (pattern.Length == 0)
+            {
+                f[fid] = 1;
+                return f[fid];
+            }
+
+            if (f.ContainsKey(fid))
+            {
+                return f[fid];
+            }
+
+            if (rollCount == 1)
+            {
+                f[fid] = p[pid];
+                return f[fid];
+            }
+
+            decimal probability = 0;
+            foreach (var s in GetSubsets(pattern))
+            {
+                var c = GetComplement(pattern, s).ToArray();
+                var pid_tmp = GetPatternId(pattern, s, rollingDiceCount, 1);
+                var pr = p[pid_tmp];
+                var fid_tmp = GetPatternId(c, rollingDiceCount - s.Length, rollCount - 1);
+                var fr = (f.ContainsKey(fid_tmp) ? f[fid_tmp] : F(c, c, rollingDiceCount - s.Length, rollCount - 1, p, f));
+                probability += p[pid_tmp] * fr;
+            }
+            f[fid] = probability;
+
+            return f[fid];
+        }
+
+        static decimal GetPatternProbability(int[] pattern, int[] subPattern, List<int[]> possibleRolls)
+        {
+            var br = false;
+            if (pattern.Sum() == 4 && subPattern.Sum() == 1 && pattern.Length == 3)
+            {
+                br = true;
+            }
+            decimal probability;
+            if (pattern.Length == 0)
+            {
+                probability = 1;
+            }
+            else
+            {
+                decimal s = 0;
+                foreach (var rolledDice in possibleRolls)
+                {
+                    if (IsProperSubset(pattern, rolledDice, subPattern))
+                    {
+                        if (br) Console.WriteLine(string.Join(" ", rolledDice));
+                        s++;
+                    }
+                }
+                probability = s / possibleRolls.Count;
+            }
+
+            return probability;
+        }
+
+        static List<(int rollingDiceCount, int[] pattern)> GetPatterns(bool ordered = false)
+        {
+            if (ordered)
+            {
+                return new List<(int rollingDiceCount, int[] pattern)>
+                {
+                    ( 0, new int[] { } ),
+                    ( 1, new int[] { } ),
+                    ( 2, new int[] { } ),
+                    ( 3, new int[] { } ),
+
+                    ( 1, new int[] { 1 } ),
+                    ( 2, new int[] { 1 } ),
+                    ( 3, new int[] { 1 } ),
+                    ( 4, new int[] { 1 } ),
+
+                    ( 2, new int[] { 1, 1 } ),
+                    ( 3, new int[] { 1, 1 } ),
+                    ( 4, new int[] { 1, 1 } ),
+                    ( 5, new int[] { 1, 1 } ),
+
+                    ( 3, new int[] { 1, 1, 1 } ),
+                    ( 4, new int[] { 1, 1, 1 } ),
+                    ( 5, new int[] { 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1 } ),
+
+                    ( 4, new int[] { 1, 1, 1, 1 } ),
+                    ( 5, new int[] { 1, 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1, 1 } ),
+
+                    ( 5, new int[] { 1, 1, 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1, 1, 1 } ),
+
+                    ( 6, new int[] { 1, 1, 1, 1, 1, 1 } ),
+
+                    // Any of the following ones can only complete a combination which consists of 6 dice
+                    ( 2, new int[] { 1, 2 } ),
+                    ( 3, new int[] { 1, 2, 3 } ),
+                    ( 4, new int[] { 1, 2, 3, 4 } ),
+                    ( 5, new int[] { 1, 2, 3, 4, 5 } ),
+                    ( 6, new int[] { 1, 2, 3, 4, 5, 6 } ),
+                    ( 3, new int[] { 1, 1, 2 } ),
+                    ( 4, new int[] { 1, 1, 1, 2 } ),
+                    ( 4, new int[] { 1, 1, 2, 2 } ),
+                    ( 5, new int[] { 1, 1, 2, 2, 3 } ),
+                    ( 5, new int[] { 1, 1, 1, 2, 2 } ),
+                    ( 6, new int[] { 1, 1, 1, 2, 2, 2 } ),
+                    ( 4, new int[] { 1, 1, 2, 3 } ),
+                    ( 6, new int[] { 1, 1, 2, 2, 3, 3 } )
+                };
+            }
+            else
+            {
+                return new List<(int rollingDiceCount, int[] pattern)>
+                {
+                    ( 0, new int[] { } ),
+
+                    ( 1, new int[] { } ),
+                    ( 1, new int[] { 1 } ),
+
+                    ( 2, new int[] { } ),
+                    ( 2, new int[] { 1 } ),
+                    ( 2, new int[] { 1, 1 } ),
+                    ( 2, new int[] { 1, 2 } ),
+
+                    ( 3, new int[] { } ),
+                    ( 3, new int[] { 1 } ),
+                    ( 3, new int[] { 1, 1 } ),
+                    ( 3, new int[] { 1, 1, 1 } ),
+                    ( 3, new int[] { 1, 2, 3 } ),
+                    ( 3, new int[] { 1, 1, 2 } ),
+
+                    ( 4, new int[] { 1 } ),
+                    ( 4, new int[] { 1, 1 } ),
+                    ( 4, new int[] { 1, 1, 1 } ),
+                    ( 4, new int[] { 1, 2, 3, 4 } ),
+                    ( 4, new int[] { 1, 1, 1, 1 } ),
+                    ( 4, new int[] { 1, 1, 1, 2 } ),
+                    ( 4, new int[] { 1, 1, 2, 2 } ),
+                    ( 4, new int[] { 1, 1, 2, 3 } ),
+
+                    ( 5, new int[] { 1, 1 } ),
+                    ( 5, new int[] { 1, 1, 1 } ),
+                    ( 5, new int[] { 1, 1, 1, 1 } ),
+                    ( 5, new int[] { 1, 1, 1, 1, 1 } ),
+                    ( 5, new int[] { 1, 2, 3, 4, 5 } ),
+                    ( 5, new int[] { 1, 1, 2, 2, 3 } ),
+                    ( 5, new int[] { 1, 1, 1, 2, 2 } ),
+
+
+                    ( 6, new int[] { 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 1, 1, 1, 1, 1 } ),
+                    ( 6, new int[] { 1, 2, 3, 4, 5, 6 } ),
+                    ( 6, new int[] { 1, 1, 1, 2, 2, 2 } ),
+                    ( 6, new int[] { 1, 1, 2, 2, 3, 3 } )
+                };
+            }        
+        }
+
+        static bool IsProperSubset(int[] pattern, int[] rolledDice, int[] subPattern)
+        {
+            var patternTemp = (int[])pattern.Clone();
+            var subPatternTemp = (int[])subPattern.Clone();
+            // We need to check the following. Let's say the 'pattern' to get is [1,1,2,3] and we want to compute probability to get exactly subPattern [1,2],
+            // meaning that [1,2,3] should not be counted because that would be part of the probability to get [1,2,3], etc.
+            // In other words, rolled dice cannot contain any other dice from 'pattern' other than what's in 'subPattern'.
+
+            // This could probably be done in more efficient way but doesn't matter for now
+            foreach (var d in rolledDice)
+            {
+                // check if the rolled die is in combination and diceToget and mark it
+                for (var i = 0; i < patternTemp.Length; i++)
+                {
+                    if (d == patternTemp[i])
+                    {
+                        patternTemp[i] = 0;
+                        break;
+                    }
+                }
+
+                for (var i = 0; i < subPatternTemp.Length; i++)
+                {
+                    if (d == subPatternTemp[i])
+                    {
+                        subPatternTemp[i] = 0;
+                        break;
+                    }
+                }
+            }
+
+            if (subPatternTemp.Sum() == 0 && patternTemp.Count(d => d == 0) == subPatternTemp.Length)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        static List<int[]> GetSubsets(int[] set)
+        {
+            return Subsets(set).Select(x => x.ToArray()).ToHashSet(new ArrayEqualityComparer()).ToList();
+        }
+
+        static IEnumerable<IEnumerable<T>> Subsets<T>(IEnumerable<T> set)
+        {
+            List<T> list = set.ToList();
+            int length = list.Count;
+            int max = (int)Math.Pow(2, list.Count);
+
+            for (int count = 0; count < max; count++)
+            {
+                List<T> subset = new List<T>();
+                uint rs = 0;
+                while (rs < length)
+                {
+                    if ((count & (1u << (int)rs)) > 0)
+                    {
+                        subset.Add(list[(int)rs]);
+                    }
+                    rs++;
+                }
+                yield return subset;
+            }
+        }
+
+        static List<int[]> GetRollsForDice(int diceCount)
+        {
+            if (diceCount == 0)
+            {
+                return new List<int[]>();
+            }
+
+            var v = new int[diceCount];
+            var r = new List<int[]>
+            {
+                v.Select(e => e + 1).ToArray()
+            };
+            while (v.Sum() != v.Length * 5)
+            {
+                v[^1]++;
+                for (var i = v.Length - 1; i >= 0; i--)
+                {
+                    if (v[i] >= 6 && i - 1 >= 0)
+                    {
+                        v[i - 1]++;
+                    }
+                    v[i] = v[i] % 6;
+                }
+
+                r.Add(v.Select(e => e + 1).ToArray());
+            }
+
+            return r;
+        }
+
+        static IEnumerable<int> GetComplement(int[] pattern, int[] subPattern)
+        {
+            var matches = new int[pattern.Length];
+
+            for (int j = 0; j < subPattern.Length; j++)
+            {
+                for (int i = 0; i < pattern.Length; i++)
+                {
+                    if (subPattern[j] == pattern[i] && matches[i] != 1)
+                    {
+                        matches[i] = 1;
+                        break;
+                    }
+                }
+            }
+
+            for (int i = 0; i < matches.Length; i++)
+            {
+                if (matches[i] == 0)
+                {
+                    yield return pattern[i];
+                }
+            }
+
+        }
+
+        static string GetPatternId(int[] pattern, int[] subPattern, int rollingDiceCount, int rollsCount)
+        {
+            var charPattern = GameUtility.CreateGenericPatternFromDice(pattern);
+            var charSubPattern = GameUtility.CreateGenericPatternFromDice(subPattern);
+            var newPattern = charPattern.Select(x => x - 96).ToArray();
+            var newSubPattern = charSubPattern.Select(x => x - 96).ToArray();
+
+            return $"{string.Join("", pattern)}-{string.Join("", subPattern)}-{rollingDiceCount}-{rollsCount}";
+        }
+
+        static string GetPatternId(int[] pattern, int rollingDiceCount, int rollsCount)
+        {
+            var charPattern =  GameUtility.CreateGenericPatternFromDice(pattern);
+            var newPattern = charPattern.Select(x => x - 96).ToArray();
+            return $"{string.Join("", pattern)}-{rollingDiceCount}-{rollsCount}";
+        }
+
+        static void GetProbabilitiesForAllPatterns()
+        {
+            using StreamWriter patternProbabilitiesFile = new StreamWriter(
+                @"C:\Coding\Dice-game\Dice-game\Dice-game\Dice-game\Database\PatternProbabilities.txt");
+
+            for (int i = 0; i < 35; i++)
+            {
+                var results = ComputePatternProbabilities(i, 100, 10000, 10000);
+                patternProbabilitiesFile.WriteLine(results);
+                patternProbabilitiesFile.Flush();
+            }
+        }
+
         /// <summary>
         /// Manual method to compute pattern probablity.
         /// </summary>
@@ -176,12 +621,12 @@ namespace Probability_calculator
 
             var rollingDiceCount = patterns[index].rollingDiceCount;
             var diceToGet = patterns[index].pattern;
-            var c = new Combination(CombinationType.Ones)
+            var c = new Combination(CombinationType.Ones) // Doesn't matter what combination type we use
             {
                 Dice = diceToGet
             };
 
-            // How many rolls a player has (we will probably cap it ~100)
+            // How many rolls a player has (I will probably cap it ~100)
             for (int i = 0; i < numberOfRolls; i++)
             {
                 // For each # of available rolls
@@ -324,6 +769,48 @@ namespace Probability_calculator
                     }
                 }
             }
+        }
+
+
+
+
+        static bool IsUniqueSubset(int[] set, int[] subset)
+        {
+            var counts = new Dictionary<int, int>(set.Length);
+            // Assign counts
+            foreach (var e in set)
+            {
+                if (counts.ContainsKey(e))
+                {
+                    counts[e]++;
+                }
+                else
+                {
+                    counts[e] = 1;
+                }
+            }
+
+            foreach (var e in subset)
+            {
+                if (counts.ContainsKey(e))
+                {
+                    counts[e]--;
+                    if (counts[e] < 0)
+                    {
+                        return false;
+                    }
+                }   
+            }
+
+            foreach (var e in counts)
+            {
+                if (counts[e.Key] != 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 

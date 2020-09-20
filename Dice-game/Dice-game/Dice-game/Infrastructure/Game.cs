@@ -70,38 +70,6 @@ namespace Dice_game.Infrastructure
                     break;
                 }
 
-                if (PlayerToEndRound == PlayerToPlay)
-                {
-                    if (Round == Round.Three)
-                    {
-                        // Game end
-                        for (var i = 0; i < Players.Length; i++)
-                        {
-                            Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
-                        }
-
-                        Console.WriteLine($"Player(s) {string.Join(", ", Players.Where(p => p.Board.TotalScore == Players.Max(p => p.Board.TotalScore)).Select(p => p.Name))} win(s).");
-
-                        break;
-                    }
-                    else
-                    {
-                        // Round end
-                        for (var i = 0; i < Players.Length; i++)
-                        {
-                            Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
-                        }
-
-                        PlayerToEndRound = null;
-                        Round += 1; // Next round - this works because round is an enum
-                                    // Set turn for players
-                        foreach (var p in Players)
-                        {
-                            p.Round = Round;
-                        }
-                    }
-                }
-
                 ResolveAction(Players[PlayerToPlay].NextAction());
             }
         }
@@ -113,9 +81,54 @@ namespace Dice_game.Infrastructure
                 PlayerToEndRound = PlayerToPlay;
             }
 
+            // Switch the player
             PlayerToPlay = ++PlayerToPlay % Players.Length;
-            Console.WriteLine($"Player's {PlayerToPlay} turn.");
-            Players[PlayerToPlay].TakeTurn();
+
+            // Check if the turn or game should be ended
+            if (PlayerToEndRound == PlayerToPlay)
+            {
+                if (Round == Round.Three)
+                {
+                    foreach (var p in Players)
+                    {
+                        p.FinishRound(); // Add points and finish the turn
+                    }
+
+                    // Game end
+                    for (var i = 0; i < Players.Length; i++)
+                    {
+                        Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
+                    }
+
+                    Console.WriteLine($"Player(s) {string.Join(", ", Players.Where(p => p.Board.TotalScore == Players.Max(p => p.Board.TotalScore)).Select(p => p.Name))} win(s).");
+
+                    // End the game
+                    EndGame = true;
+                }
+                else
+                {
+                    // Round end
+                    for (var i = 0; i < Players.Length; i++)
+                    {
+                        Console.WriteLine($"Player's {i} score: {Players[i].Board.TotalScore}");
+                    }
+
+                    PlayerToEndRound = null;
+                    Round++; // Next round - this works because round is an enum
+
+                    // Set new round for each player
+                    foreach (var p in Players)
+                    {
+                        p.FinishRound(); // Add points and finish the turn
+                    }
+                }
+            }
+
+            if (!EndGame)
+            {
+                Console.WriteLine($"Player's {PlayerToPlay} turn.");
+                Players[PlayerToPlay].TakeTurn();
+            }     
         }
 
         public void ResolveAction(PlayerAction action)
@@ -129,7 +142,6 @@ namespace Dice_game.Infrastructure
 
                 case PlayerAction.EndGame:
                     EndGame = true;
-                    NextTurn();
                     break;
 
                 default:

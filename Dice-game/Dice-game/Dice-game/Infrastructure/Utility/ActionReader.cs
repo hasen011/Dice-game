@@ -13,7 +13,7 @@ namespace Dice_game.Infrastructure.Utility
             var input = Console.ReadLine();
 
             // If it's Round.Two and first action, force player to pick a combination to play
-            if (round == Round.Two && firstAction)
+            if (round == Round.Two && firstAction && input != "EndGame")
             {
                 input = $"{PlayerAction.PickCombinationToPlay} " + input;
             }
@@ -52,39 +52,50 @@ namespace Dice_game.Infrastructure.Utility
             else if (temp.Length == 2)
             {
                 var param = temp[1].ToCharArray().Select(x => x - '0').ToArray();
-                
+
                 // Checks
-                if (param.Any(p => p < 0) || param.Any(p => p > 6))
+                if (action == PlayerAction.PickCombinationToPlay)
                 {
-                    return (PlayerAction.InvalidAction, new int[0]);
-                }
-                else if (action == PlayerAction.AssignCombination)
-                {
-                    if (param.Length != 1)
+                    // PlayerAction.PickCombinationToPlay is a special case because we pick
+                    // values from between 1-11 instead of 1-6 (dice values)
+
+                    Enum.TryParse(temp[1], out CombinationType combination);
+                    if (!Enum.IsDefined(typeof(CombinationType), combination))
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
-                    }                
+                    }
+                    else
+                    {
+                        return (action, new int[] { (int)combination });
+                    }
                 }
-                else if (action == PlayerAction.FixDice)
+                else
                 {
-                    if (param.Any(p => p < 0 || p > 5) || param.Length > 6)
+                    if (param.Any(p => p < 0) || param.Any(p => p > 6))
                     {
                         return (PlayerAction.InvalidAction, new int[0]);
-                    }                
-                }
-                else if (action == PlayerAction.AssignDice)
-                {
-                    if (param.Any(p => p < 1 || p > 6) || param.Length != 6)
+                    }
+                    else if (action == PlayerAction.AssignCombination)
                     {
-                        return (PlayerAction.InvalidAction, new int[0]);
-                    }                 
-                }
-                else if (action == PlayerAction.PickCombinationToPlay)
-                {
-                    if (param.Length != 1 || !Enum.IsDefined(typeof(CombinationType), param[0]))
+                        if (param.Length != 1)
+                        {
+                            return (PlayerAction.InvalidAction, new int[0]);
+                        }
+                    }
+                    else if (action == PlayerAction.FixDice)
                     {
-                        return (PlayerAction.InvalidAction, new int[0]);
-                    }    
+                        if (param.Any(p => p < 0 || p > 5) || param.Length > 6)
+                        {
+                            return (PlayerAction.InvalidAction, new int[0]);
+                        }
+                    }
+                    else if (action == PlayerAction.AssignDice)
+                    {
+                        if (param.Any(p => p < 1 || p > 6) || param.Length != 6)
+                        {
+                            return (PlayerAction.InvalidAction, new int[0]);
+                        }
+                    }
                 }
 
                 return (action, param);
@@ -107,10 +118,15 @@ namespace Dice_game.Infrastructure.Utility
         }
         public override (PlayerAction action, int[] param) GetNextAction(Round round, bool firstAction)
         {
+            if (index == 44)
+            {
+                var x = 0;
+            }
+
             var input = InputSequence[index++];
 
             // If it's Round.Two and first action, force player to pick a combination to play
-            if (round == Round.Two && firstAction)
+            if (round == Round.Two && firstAction && input != "EndGame")
             {
                 input = $"{PlayerAction.PickCombinationToPlay} " + input;
             }

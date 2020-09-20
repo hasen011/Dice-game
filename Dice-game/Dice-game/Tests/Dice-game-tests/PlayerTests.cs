@@ -20,7 +20,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_ReturnsCorrectly()
         {
-            var p = new Player(PlayerType.Human)
+            var p = new Player(PlayerType.Human, "test_player1")
             {
                 // Fix all dice
                 RolledDice = new[] { 2, 2, 2, 2, 2, 2 },
@@ -105,7 +105,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_ReturnsCorrectlyAfterRerolls()
         {
-            var p = new Player(PlayerType.Human)
+            var p = new Player(PlayerType.Human, "test_player1")
             {
                 RolledDice = new[] { 4, 1, 4, 6, 4, 4 },
                 TotalNumberOfRolls = 10
@@ -171,7 +171,7 @@ namespace Dice_game_tests
         [Fact]
         public void CombinationLookup_CompletedCombinationsAreNotReturned()
         {
-            var p = new Player(PlayerType.Human)
+            var p = new Player(PlayerType.Human, "test_player1")
             {
                 RolledDice = new[] { 4, 1, 4, 6, 4, 4 },
                 FixedDice = new[] { true, true, true, true, true, true },
@@ -202,6 +202,42 @@ namespace Dice_game_tests
             Assert.Single(p.CurrentPossibleCombinations);
             Assert.Contains(p.CurrentPossibleCombinations,
                 x => x.CombinationType == CombinationType.Poker && x.Dice.SequenceEqual(new[] { 4, 4, 4, 4 }));
+        }
+
+        [Fact]
+        public void AssignCombination_AssigningCombinationWhichIsNotPickedToPlayFails()
+        {
+            var p = new Player(PlayerType.Human, "test_player1",
+                    new ActionReaderSequence(new[] { "5" }))
+            {
+                Round = Round.Two
+            };
+
+            Assert.Equal(CombinationType.Unknown, p.CombinationToPlay);
+
+            p.TakeTurn();
+            p.NextAction();
+
+            Assert.Equal(CombinationType.Fives, p.CombinationToPlay);
+
+            p.RolledDice = new[] { 6, 6, 6, 6, 6, 6 };
+            p.EvaluateDice();
+
+            // Try to assign the first combination. In this case, it is Sixes
+            p.TryAssignCombination(0);
+
+            // Assigning Sixes should fail because the player picked Fives to play
+            Assert.False(p.Board.CurrentBoard[CombinationType.Sixes].Completed);
+
+            p.RolledDice = new[] { 5, 5, 5, 5, 5, 5 };
+            p.EvaluateDice();
+
+            // Try to assign the first combination. In this case, it is Fives
+            p.TryAssignCombination(0);
+
+            // Assigning Fives should succeed because the player picked Fives to play
+            Assert.True(p.Board.CurrentBoard[CombinationType.Fives].Completed);
+            Assert.Equal(15, p.Board.CurrentBoard[CombinationType.Fives].Score);
         }
 
 
