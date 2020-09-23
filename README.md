@@ -1,1 +1,2 @@
-# Kostky-game
+# Dice-game
+TODO: update
